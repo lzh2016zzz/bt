@@ -5,9 +5,6 @@ import lombok.Setter;
 
 /***
  * 搜索请求
- *
- * @author Mr.Xu
- * @date 2019-03-02 13:52
  **/
 @Getter @Setter
 public class SearchRequest {

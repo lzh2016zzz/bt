@@ -8,8 +8,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 /***
  * 去重的节点阻塞队列
  *
- * @author Mr.Lai
- * @date 2019-02-17 18:44
  **/
 public class UniqueBlockingQueue {
 

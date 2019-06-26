@@ -7,9 +7,6 @@ import java.io.Serializable;
 
 /***
  * Peer Wire 下载消息信息
- *
- * @author Mr.Lai
- * @date 2019-02-20 15:53
  **/
 @Data
 public class DownloadMsgInfo implements Serializable {

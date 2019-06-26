@@ -4,9 +4,6 @@ import java.util.Random;
 
 /***
  * NodeId 生成工具
- *
- * @author Mr.Lai
- * @simce 2019-02-15 17:36
  **/
 public class NodeIdUtil {
 

@@ -24,8 +24,6 @@ import java.util.Set;
 /***
  * Netty 服务器配置
  *
- * @author: Mr.Xu
- * @create: 2019-02-15 14:50
  **/
 @Configuration
 @ConfigurationProperties(prefix = "netty")

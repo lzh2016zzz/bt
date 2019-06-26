@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by Mr.Xu on 2017/4/21.
  */
 public class FileTypeUtil {
 

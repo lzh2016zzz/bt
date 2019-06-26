@@ -6,8 +6,6 @@ import java.util.Map;
 /***
  * 文件扩展名工具类
  *
- * @author Mr.Lai
- * @date 2019-02-22 15:11
  **/
 public class ExtensionUtil {
 

@@ -27,8 +27,6 @@ import java.util.Map;
 /***
  * 参见 Bittorrent 协议：
  * http://www.bittorrent.org/beps/bep_0005.html
- *
- * @author Mr.Lai
  **/
 @Slf4j
 @Component
@@ -300,7 +298,6 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
 	/**
 	 * 查询 DHT 节点线程，用于持续获取新的 DHT 节点
 	 *
-	 * @date 2019/2/17
 	 **/
 	private Thread findNodeTask = new Thread() {
 
