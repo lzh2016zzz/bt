@@ -39,7 +39,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
 	@Autowired
 	private RedisTemplate redisTemplate;
 
-
+	public static final byte[] EMPTY_BYTES =  new byte[]{};
 
 	public static final UniqueBlockingQueue NODES_QUEUE = new UniqueBlockingQueue();
 
@@ -119,7 +119,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
 	private void responseFindNode(byte[] t, InetSocketAddress sender) {
 		HashMap<String, Object> r = new HashMap<>();
 		r.put("id", DHTServer.SELF_NODE_ID);
-		r.put("nodes", new byte[]{});
+		r.put("nodes", EMPTY_BYTES);
 		DatagramPacket packet = createPacket(t, "r", r, sender);
 		dhtServer.sendKRPC(packet);
 		//log.info("response find_node[{}]", sender);
@@ -135,7 +135,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
 	private void responseGetPeers(byte[] t, byte[] info_hash, InetSocketAddress sender) {
 		HashMap<String, Object> r = new HashMap<>();
 		r.put("token", new byte[]{info_hash[0], info_hash[1]});
-		r.put("nodes", new byte[]{});
+		r.put("nodes", EMPTY_BYTES);
 		r.put("id", NodeIdUtil.getNeighbor(DHTServer.SELF_NODE_ID, info_hash));
 		DatagramPacket packet = createPacket(t, "r", r, sender);
 		dhtServer.sendKRPC(packet);
