@@ -20,9 +20,9 @@ import java.util.Map;
 public class KafkaConfig {
 
 
-    @Value("${logic.kafka.host}")
+    @Value("${logic.kafka.breaker.host}")
     private String host;
-    @Value("${logic.kafka.port}")
+    @Value("${logic.kafka.breaker.port}")
     private int port;
 
     @Bean

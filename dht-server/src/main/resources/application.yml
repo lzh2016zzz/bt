@@ -6,9 +6,11 @@ logic:
     backlog: 100
     rcvbuf: 268435456
     sndbuf: 65536
+##kafka端口
   kafka:
-    host: 18.179.203.137
-    port: 9092
+    breaker:
+      host: 18.179.203.137
+      port: 9092
 
 spring:
   redis:
