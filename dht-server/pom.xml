@@ -51,11 +51,11 @@
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka</artifactId>
         </dependency>
-        <!--        <dependency>-->
-        <!--            <groupId>io.logic</groupId>-->
-        <!--            <artifactId>logic-all</artifactId>-->
-        <!--            <version>4.1.3.Final</version>-->
-        <!--        </dependency>-->
+                <dependency>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-all</artifactId>
+                    <version>4.1.36.Final</version>
+                </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
