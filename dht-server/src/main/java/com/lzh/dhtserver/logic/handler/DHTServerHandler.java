@@ -1,8 +1,8 @@
-package com.lzh.dhtserver.netty.handler;
+package com.lzh.dhtserver.logic.handler;
 
-import com.lzh.dhtserver.netty.DHTServer;
-import com.lzh.dhtserver.netty.entity.Node;
-import com.lzh.dhtserver.netty.entity.UniqueBlockingQueue;
+import com.lzh.dhtserver.logic.DHTServer;
+import com.lzh.dhtserver.logic.entity.Node;
+import com.lzh.dhtserver.logic.entity.UniqueBlockingQueue;
 import com.lzh.dhtserver.common.util.ByteUtil;
 import com.lzh.dhtserver.common.util.NodeIdUtil;
 import com.lzh.dhtserver.common.util.bencode.BencodingUtils;
@@ -184,7 +184,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
 				return;
 			}
 			redisTemplate.expire(key, 5, TimeUnit.MINUTES);*/
-			log.error("info_hash[AnnouncePeer] : {}:{} - {}", sender.getHostString(), port, ByteUtil.byteArrayToHex(info_hash));
+			log.info("info_hash[AnnouncePeer] : {}:{} - {}", sender.getHostString(), port, ByteUtil.byteArrayToHex(info_hash));
 			//设置message
 //			messageStreams.downloadMessageOutput()
 //					.send(MessageBuilder

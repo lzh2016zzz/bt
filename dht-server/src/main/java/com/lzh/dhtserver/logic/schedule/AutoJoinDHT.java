@@ -1,6 +1,6 @@
-package com.lzh.dhtserver.netty.schedule;
+package com.lzh.dhtserver.logic.schedule;
 
-import com.lzh.dhtserver.netty.handler.DHTServerHandler;
+import com.lzh.dhtserver.logic.handler.DHTServerHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;

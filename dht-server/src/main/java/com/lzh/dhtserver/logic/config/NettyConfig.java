@@ -1,4 +1,4 @@
-package com.lzh.dhtserver.netty.config;
+package com.lzh.dhtserver.logic.config;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -26,16 +26,16 @@ import java.util.Set;
  *
  **/
 @Configuration
-@ConfigurationProperties(prefix = "netty")
+@ConfigurationProperties(prefix = "logic")
 public class NettyConfig implements ApplicationListener<ContextClosedEvent> {
 
-	@Value("${netty.udp.port}")
+	@Value("${logic.udp.port}")
 	private int udpPort;
-	@Value("${netty.so.backlog}")
+	@Value("${logic.so.backlog}")
 	private int backlog;
-	@Value("${netty.so.rcvbuf}")
+	@Value("${logic.so.rcvbuf}")
 	private int rcvbuf;
-	@Value("${netty.so.sndbuf}")
+	@Value("${logic.so.sndbuf}")
 	private int sndbuf;
 
 	private EventLoopGroup group;

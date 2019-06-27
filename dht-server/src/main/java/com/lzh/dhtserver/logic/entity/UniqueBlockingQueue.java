@@ -1,4 +1,4 @@
-package com.lzh.dhtserver.netty.entity;
+package com.lzh.dhtserver.logic.entity;
 
 import java.util.HashSet;
 import java.util.Set;

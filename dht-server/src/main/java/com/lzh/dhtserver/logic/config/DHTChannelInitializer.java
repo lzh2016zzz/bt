@@ -1,6 +1,6 @@
-package com.lzh.dhtserver.netty.config;
+package com.lzh.dhtserver.logic.config;
 
-import com.lzh.dhtserver.netty.handler.DHTServerHandler;
+import com.lzh.dhtserver.logic.handler.DHTServerHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.DatagramChannel;

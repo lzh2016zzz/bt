@@ -1,5 +1,5 @@
 ## netty服务器端口
-netty:
+logic:
   udp:
     port: 6688
   so:
