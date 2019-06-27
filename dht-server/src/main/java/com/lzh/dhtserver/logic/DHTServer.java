@@ -58,7 +58,7 @@ public class DHTServer {
     public void start() throws Exception {
         log.info("启动dht-server,udpPort :{}  ", udpPort);
         serverChannelFuture = b.bind(udpPort).sync();
-        serverChannelFuture.channel().closeFuture();
+        serverChannelFuture.channel().closeFuture().sync();
         log.info("启动dht-server成功.");
     }
 
