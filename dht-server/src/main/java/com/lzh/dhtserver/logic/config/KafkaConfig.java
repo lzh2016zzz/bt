@@ -20,10 +20,13 @@ import java.util.Map;
 public class KafkaConfig {
 
 
-    @Value("${logic.kafka.breaker.host}")
+    @Value("${logic.kafka.broker.host}")
     private String host;
-    @Value("${logic.kafka.breaker.port}")
+    @Value("${logic.kafka.broker.port}")
     private int port;
+    @Value("${logic.kafka.topic-info-hash-output}")
+    private String outputTopicName;
+
 
     @Bean
     public ProducerFactory<String, String> producerFactory() {
@@ -45,6 +48,9 @@ public class KafkaConfig {
 
     @Bean
     public KafkaTemplate<String, String> kafkaTemplate() {
-        return new KafkaTemplate<>(producerFactory());
+
+        KafkaTemplate<String, String> kafkaTemplate = new KafkaTemplate<>(producerFactory());
+        kafkaTemplate.setDefaultTopic(outputTopicName);
+        return kafkaTemplate;
     }
 }
