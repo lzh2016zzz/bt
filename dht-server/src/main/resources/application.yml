@@ -4,8 +4,8 @@ logic:
     port: 6688
   so:
     backlog: 100
-    rcvbuf: 128435456
-    sndbuf: 65536
+    rcvbuf: 6435456
+    sndbuf: 65535
 ##kafka端口
   kafka:
     breaker:
