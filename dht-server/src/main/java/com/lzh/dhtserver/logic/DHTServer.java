@@ -56,9 +56,10 @@ public class DHTServer {
      */
     @PostConstruct
     public void start() throws Exception {
-        log.info("Starting dht server at " + udpPort);
+        log.info("启动dht-server,udpPort :{}  ", udpPort);
         serverChannelFuture = b.bind(udpPort).sync();
         serverChannelFuture.channel().closeFuture();
+        log.info("启动dht-server成功.");
     }
 
     /**
