@@ -9,13 +9,13 @@ logic:
   ##kafka配置
   kafka:
     broker:
-      host: localhost
+      host: 3.113.71.211
       port: 9092
     topic-info-hash-output: info-hash-output
 
 spring:
   redis:
-    host: 3.113.71.211
+    host: localhost
     port: 6379
     password: ce30
     jedis:
