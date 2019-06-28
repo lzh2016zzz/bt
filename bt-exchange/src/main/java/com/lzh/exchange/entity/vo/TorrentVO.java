@@ -1,6 +1,6 @@
-package com.lzh.dhtserver.common.vo;
+package com.lzh.exchange.entity.vo;
 
-import com.lzh.dhtserver.common.entity.Torrent;
+import com.lzh.exchange.entity.Torrent;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;

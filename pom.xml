@@ -27,6 +27,7 @@
 
     <modules>
         <module>dht-server</module>
+        <module>bt-exchange</module>
     </modules>
 
     <dependencyManagement>
