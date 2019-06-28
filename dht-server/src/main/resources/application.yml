@@ -15,7 +15,7 @@ logic:
 
 spring:
   redis:
-    host: localhost
+    host: 3.113.71.211
     port: 6379
     password: ce30
     jedis:
