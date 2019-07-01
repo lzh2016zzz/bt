@@ -62,10 +62,12 @@ public class ExchangeClient {
         public void operationComplete(ChannelFuture future) throws Exception {
             if (future.isSuccess()) {
                 //连接成功发送握手消息
+                log.info("连接成功，查询info-hash信息，，");
                 sendHandshakeMessage(future);
                 return;
             }
             //如果失败 ,不做任何操作
+            log.info("连接失败。。");
             future.channel().close();
         }
 
