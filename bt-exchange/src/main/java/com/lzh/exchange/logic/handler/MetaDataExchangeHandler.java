@@ -57,11 +57,12 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
      * 获取metadataBytes
      */
     private void fetchMetadataBytes(String messageStr) {
-        String MetaDataResultStr = messageStr.substring(messageStr.indexOf("ee") + 2, messageStr.length());
+        String MetaDataResultStr = messageStr.substring(messageStr.indexOf("ee") + 2);
         byte[] MetaDataResultStrBytes = MetaDataResultStr.getBytes(CharsetUtil.ISO_8859_1);
         if (metaDataResult.getResult() != null) {
             metaDataResult.setResult(ArrayUtils.addAll(metaDataResult.getResult(), MetaDataResultStrBytes));
         } else {
+            log.info("receive-result : " + MetaDataResultStrBytes);
             metaDataResult.setResult(MetaDataResultStrBytes);
         }
         //唤醒latch
@@ -81,7 +82,7 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
         int metadataSize = Integer.parseInt(otherStr.substring(0, otherStr.indexOf("e")));
         //分块数
         int blockSum = (int) Math.ceil((double) metadataSize / 5);
-//				log.info("该种子metadata大小:{},分块数:{}",metadataSize,blockSum);
+        log.info("该种子metadata大小:{},分块数:{}",metadataSize,blockSum);
         //发送metadata请求
         for (int i = 0; i < blockSum; i++) {
             Map<String, Object> metadataRequestMap = new LinkedHashMap<>();
