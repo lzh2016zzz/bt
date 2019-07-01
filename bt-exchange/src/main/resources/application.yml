@@ -1,5 +1,7 @@
 ## netty服务器端口
 logic:
+  udp:
+    port: 6998
   ##kafka配置
   kafka:
     broker:

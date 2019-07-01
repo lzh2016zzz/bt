@@ -75,7 +75,7 @@ public class NettyConfig implements ApplicationListener<ContextClosedEvent> {
 
 	@Bean(name = "udpChannelOptions")
 	public Map<ChannelOption<?>, Object> udpChannelOptions() {
-		Map<ChannelOption<?>, Object> options = new HashMap<ChannelOption<?>, Object>();
+		Map<ChannelOption<?>, Object> options = new HashMap<>();
 		options.put(ChannelOption.SO_BACKLOG, backlog);
 		options.put(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
 		options.put(ChannelOption.SO_RCVBUF, rcvbuf);

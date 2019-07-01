@@ -20,7 +20,7 @@ public class AutoJoinDHT {
 	@Scheduled(fixedDelay = 30 * 1000, initialDelay = 10 * 1000)
 	public void doJob() {
 		if (handler.NODES_QUEUE.isEmpty()) {
-			log.info("本地 DHT 节点数为0，自动重新加入 DHT 网络中...");
+			log.info("本地 DHT 节点数为0，自动重新加入 DHT 网络..");
 			handler.joinDHT();
 		}
 	}
