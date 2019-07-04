@@ -24,8 +24,6 @@ public class NettyConfig  implements ApplicationListener<ContextClosedEvent> {
 
     private EventLoopGroup group;
 
-    private static final int nThreads = NettyRuntime.availableProcessors() + 1;
-
     @Bean(name = "group")
     public EventLoopGroup group() {
         return new NioEventLoopGroup();
@@ -36,7 +34,7 @@ public class NettyConfig  implements ApplicationListener<ContextClosedEvent> {
         log.info("初始化bootstrap bean。。");
         group = group();
         Bootstrap b = new Bootstrap();
-        b.group(new NioEventLoopGroup(nThreads))
+        b.group(new NioEventLoopGroup(Constant.NETTY_THREADS))
                 .channel(NioSocketChannel.class)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 3000)
                 .option(ChannelOption.RCVBUF_ALLOCATOR, new AdaptiveRecvByteBufAllocator(1, 102400, Integer.MAX_VALUE));

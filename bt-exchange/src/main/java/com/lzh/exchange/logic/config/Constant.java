@@ -1,5 +1,7 @@
 package com.lzh.exchange.logic.config;
 
+import io.netty.util.NettyRuntime;
+
 public class Constant {
 
     //常量配置--------
@@ -18,6 +20,10 @@ public class Constant {
     // 第一位19,是固定的,表示这个字符串的长度.后面八位是BT协议的版本.可以全为0,某些软件对协议进行了扩展,协议号不全为0,不必理会.
     public static final byte[] GET_METADATA_HANDSHAKE_PRE_BYTES = {19, 66, 105, 116, 84, 111, 114, 114, 101, 110, 116, 32, 112, 114,
             111, 116, 111, 99, 111, 108, 0, 0, 0, 0, 0, 16, 0, 1};
+
+
+    //并发线程数配置
+    public static final int NETTY_THREADS = NettyRuntime.availableProcessors() + 1;
 
     //metadata数据, 每一分片大小 16KB, 此处为byte
     public static final long METADATA_PIECE_SIZE = 16 << 10;
