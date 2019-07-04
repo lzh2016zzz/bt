@@ -83,7 +83,7 @@ public class ExchangeClient {
                 infoHash = Hex.decodeHex(infoHashHexStr);
                 byte[] sendBytes = new byte[68];
                 System.arraycopy(Constant.GET_METADATA_HANDSHAKE_PRE_BYTES, 0, sendBytes, 0, 28);
-                System.arraycopy(infoHash, 0, sendBytes, 28, 20);
+                System.arraycopy(infoHash, 0, sendBytes, 28, Constant.BASIC_HASH_LEN);
                 System.arraycopy(selfPeerId, 0, sendBytes, 48, 20);
                 future.channel().writeAndFlush(Unpooled.copiedBuffer(sendBytes));
             } catch (DecoderException e) {
