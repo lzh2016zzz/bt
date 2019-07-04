@@ -6,9 +6,7 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.util.NettyRuntime;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,10 +15,6 @@ import org.springframework.context.event.ContextClosedEvent;
 @Configuration
 @Slf4j
 public class NettyConfig  implements ApplicationListener<ContextClosedEvent> {
-
-
-    @Value("${logic.udp.port}")
-    private int udpPort;
 
     private EventLoopGroup group;
 

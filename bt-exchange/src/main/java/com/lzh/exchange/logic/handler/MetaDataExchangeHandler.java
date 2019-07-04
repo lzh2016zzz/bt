@@ -1,6 +1,6 @@
 package com.lzh.exchange.logic.handler;
 
-import com.lzh.exchange.common.constant.MetaDataResult;
+import com.lzh.exchange.common.constant.MetaDataResultTask;
 import com.lzh.exchange.common.util.bencode.BencodingUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -25,7 +25,7 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
 
     private String infoHashHexStr;
 
-    private MetaDataResult metaDataResult;
+    private MetaDataResultTask metaDataResultTask;
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
@@ -61,13 +61,13 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
     private void fetchMetadataBytes(String messageStr) {
         String MetaDataResultStr = messageStr.substring(messageStr.indexOf("ee") + 2);
         byte[] MetaDataResultStrBytes = MetaDataResultStr.getBytes(CharsetUtil.ISO_8859_1);
-        if (metaDataResult.getResult() != null) {
-            metaDataResult.setResult(ArrayUtils.addAll(metaDataResult.getResult(), MetaDataResultStrBytes));
+        if (metaDataResultTask.getResult() != null) {
+            metaDataResultTask.setResult(ArrayUtils.addAll(metaDataResultTask.getResult(), MetaDataResultStrBytes));
         } else {
-            metaDataResult.setResult(MetaDataResultStrBytes);
+            metaDataResultTask.setResult(MetaDataResultStrBytes);
         }
         //唤醒latch
-        metaDataResult.getLatch().countDown();
+        metaDataResultTask.awake();
     }
 
     /**

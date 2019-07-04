@@ -1,7 +1,7 @@
 package com.lzh.exchange.logic;
 
 
-import com.lzh.exchange.common.constant.MetaDataResult;
+import com.lzh.exchange.common.constant.MetaDataResultTask;
 import com.lzh.exchange.common.util.NodeIdUtil;
 import com.lzh.exchange.logic.config.Constant;
 import com.lzh.exchange.logic.config.CustomChannelInitializer;
@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.net.InetSocketAddress;
-import java.util.concurrent.CountDownLatch;
 
 /***
  *
@@ -40,13 +39,16 @@ public class ExchangeClient {
      *
      * @throws InterruptedException
      */
-    public MetaDataResult send(String infoHashHexStr,String ip ,int port) {
-        CountDownLatch latch = new CountDownLatch(1);
-        final MetaDataResult result = new MetaDataResult(latch);
-        bootstrapFactory.build().handler(new CustomChannelInitializer(infoHashHexStr, result))
-                .connect(new InetSocketAddress(ip, port))
-                .addListener(new ConnectListener(infoHashHexStr,peerId,ip,port,latch));
+    public MetaDataResultTask createTask(String infoHashHexStr, String ip , int port) {
+        final MetaDataResultTask result = MetaDataResultTask.metaDataResult();
+        result.future(() -> queryTask(infoHashHexStr, ip, port, result));
         return result;
+    }
+
+    private ChannelFuture queryTask(String infoHashHexStr, String ip, int port, MetaDataResultTask result) {
+        return bootstrapFactory.build().handler(new CustomChannelInitializer(infoHashHexStr, result))
+                .connect(new InetSocketAddress(ip, port))
+                .addListener(new ConnectListener(infoHashHexStr,peerId,ip,port,result));
     }
 
 
@@ -55,12 +57,12 @@ public class ExchangeClient {
         private String infoHashHexStr;
         //自己的peerId,直接定义为和nodeId相同即可
         private byte[] selfPeerId;
-
+        //连接的ip
         private String ip;
-
+        //端口号
         private int port;
-
-        private CountDownLatch countDownLatch;
+        //闭锁
+        private final MetaDataResultTask metaDataResult;
 
         @Override
         public void operationComplete(ChannelFuture future) throws Exception {
@@ -71,8 +73,8 @@ public class ExchangeClient {
                 return;
             }
             //如果失败 ,不做任何操作
+            metaDataResult.awake();
             log.info("连接peer失败,ip:{},port:{}",ip,port);
-            countDownLatch.countDown();
             future.channel().close();
         }
 
@@ -93,12 +95,12 @@ public class ExchangeClient {
             }
         }
 
-        public ConnectListener(String infoHashHexStr, byte[] selfPeerId,String ip,int port,CountDownLatch countDownLatch) {
+        public ConnectListener(String infoHashHexStr, byte[] selfPeerId, String ip, int port, MetaDataResultTask metaDataResult) {
             this.infoHashHexStr = infoHashHexStr;
             this.selfPeerId = selfPeerId;
             this.ip = ip;
             this.port = port;
-            this.countDownLatch = countDownLatch;
+            this.metaDataResult = metaDataResult;
         }
     }
 
