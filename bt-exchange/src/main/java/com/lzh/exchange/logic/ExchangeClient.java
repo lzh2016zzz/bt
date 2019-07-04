@@ -8,7 +8,6 @@ import com.lzh.exchange.logic.config.CustomChannelInitializer;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
@@ -65,7 +64,7 @@ public class ExchangeClient {
         public void operationComplete(ChannelFuture future) throws Exception {
             if (future.isSuccess()) {
                 //连接成功发送握手消息
-                log.info("连接peer成功，向peer查询info-hash");
+                log.info("连接peer成功，向peer[{}:{}]查询info-hash",ip,port);
                 sendHandshakeMessage(future);
                 return;
             }
