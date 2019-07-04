@@ -1,4 +1,4 @@
-package com.lzh.exchange.common.constant;
+package com.lzh.exchange.logic;
 
 import com.alibaba.fastjson.JSON;
 import com.lzh.exchange.common.entity.Metadata;
@@ -10,7 +10,6 @@ import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -24,6 +23,7 @@ public class MetaDataResultTask {
 
 	private Consumer<Metadata> successCallBack;
 
+	private Consumer<Throwable> failureCallBack;
 
 	private Supplier<ChannelFuture> future;
 
@@ -32,13 +32,13 @@ public class MetaDataResultTask {
 	}
 
 
-	public MetaDataResultTask future(Supplier<ChannelFuture> future){
+	protected MetaDataResultTask future(Supplier<ChannelFuture> future){
 		this.future = future;
 		return this;
 	}
 
 
-	public static MetaDataResultTask metaDataResult(){
+	protected static MetaDataResultTask metaDataResult(){
 		MetaDataResultTask metaDataResult = new MetaDataResultTask();
 		return metaDataResult;
 	}
@@ -49,24 +49,45 @@ public class MetaDataResultTask {
 		return this;
 	}
 
-	public void start(){
-			if(successCallBack != null) {
-				future.get();
-			}
+
+
+	public MetaDataResultTask failure(Consumer<Throwable> callBack){
+		this.failureCallBack = callBack;
+		return this;
 	}
 
-	public void doSuccess(){
+	public void start(){
+		if(successCallBack != null) {
+			future.get();
+		}
+	}
+
+
+	protected byte[] getResult() {
+		return result;
+	}
+
+	protected void setResult(byte[] result) {
+		this.result = result;
+	}
+
+	protected void doSuccess(){
 		Optional.ofNullable(this.result)
 				.filter(k -> !ArrayUtils.isEmpty(k))
 				.map(this::bytes2Metadata)
 				.ifPresent(metadata -> successCallBack.accept(metadata));
 	}
 
+	protected void doFailure(Supplier<Throwable> caught){
+		Optional.ofNullable(this.failureCallBack)
+				.ifPresent(cb -> cb.accept(caught.get()));
+	}
+
 	/**
 	 * byte[] 转 {@link Metadata}
 	 */
 	@SuppressWarnings("unchecked")
-	public Metadata bytes2Metadata(byte[] bytes) {
+	private Metadata bytes2Metadata(byte[] bytes) {
 		try {
 			String metadataStr = new String(bytes, CharsetUtil.UTF_8);
 			String metadataBencodeStr = metadataStr.substring
@@ -77,14 +98,5 @@ public class MetaDataResultTask {
 			log.error("[bytes2Metadata]失败.e:", e.getMessage(), e);
 		}
 		return null;
-	}
-
-
-	public byte[] getResult() {
-		return result;
-	}
-
-	public void setResult(byte[] result) {
-		this.result = result;
 	}
 }

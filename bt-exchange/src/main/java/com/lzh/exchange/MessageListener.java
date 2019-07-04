@@ -1,7 +1,8 @@
-package com.lzh.exchange.logic;
+package com.lzh.exchange;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.lzh.exchange.logic.ExchangeClient;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,8 +11,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Base64Utils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Component
@@ -39,15 +38,19 @@ public class MessageListener {
                     int port;
                     if (!StringUtils.isEmpty(ip = msg.getString("ip")) &&
                             !StringUtils.isEmpty(port = msg.getInteger("port"))) {
+
                         //b64 -> hex
                         String hexString = Hex.encodeHexString(Base64Utils.decodeFromString(infoHash));
 
                         //创建任务
-                        log.info("获取数据: {},{}", hexString, ip + ":" + port);
+                        log.info("新增任务: {},{}", hexString, ip + ":" + port);
+
                         client.createTask(hexString, ip , port)
                                 .success((meta) -> {
                                     //成功回调
-                                }).start();
+                                })
+                                .failure((err) -> log.error("任务失败，原因： " + err.getMessage()))
+                                .start();
                     }
                 } else {
                     log.error("获取到的info-hash为空，无法解析");

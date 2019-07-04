@@ -1,7 +1,6 @@
 package com.lzh.exchange.logic;
 
 
-import com.lzh.exchange.common.constant.MetaDataResultTask;
 import com.lzh.exchange.common.util.NodeIdUtil;
 import com.lzh.exchange.logic.config.Constant;
 import com.lzh.exchange.logic.config.CustomChannelInitializer;
@@ -15,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.net.InetSocketAddress;
+import java.net.SocketException;
 
 /***
  *
@@ -45,10 +45,10 @@ public class ExchangeClient {
         return result;
     }
 
-    private ChannelFuture queryTask(String infoHashHexStr, String ip, int port, MetaDataResultTask result) {
-        return bootstrapFactory.build().handler(new CustomChannelInitializer(infoHashHexStr, result))
+    private ChannelFuture queryTask(String infoHashHexStr, String ip, int port, MetaDataResultTask task) {
+        return bootstrapFactory.build().handler(new CustomChannelInitializer(infoHashHexStr, task))
                 .connect(new InetSocketAddress(ip, port))
-                .addListener(new ConnectListener(infoHashHexStr,peerId,ip,port));
+                .addListener(new ConnectListener(infoHashHexStr,peerId,ip,port,task));
     }
 
 
@@ -61,6 +61,8 @@ public class ExchangeClient {
         private String ip;
         //端口号
         private int port;
+        //task
+        private MetaDataResultTask task;
 
         @Override
         public void operationComplete(ChannelFuture future) throws Exception {
@@ -70,8 +72,7 @@ public class ExchangeClient {
                 sendHandshakeMessage(future);
                 return;
             }
-            //如果失败 ,不做任何操作
-            log.info("连接peer失败,ip:{},port:{}",ip,port);
+            task.doFailure(() -> new SocketException("连接peer失败"));
             future.channel().close();
         }
 
@@ -92,11 +93,12 @@ public class ExchangeClient {
             }
         }
 
-        public ConnectListener(String infoHashHexStr, byte[] selfPeerId, String ip, int port) {
+        public ConnectListener(String infoHashHexStr, byte[] selfPeerId, String ip, int port,MetaDataResultTask task) {
             this.infoHashHexStr = infoHashHexStr;
             this.selfPeerId = selfPeerId;
             this.ip = ip;
             this.port = port;
+            this.task = task;
         }
     }
 

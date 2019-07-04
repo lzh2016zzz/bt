@@ -1,7 +1,7 @@
 package com.lzh.exchange.logic.config;
 
-import com.lzh.exchange.common.constant.MetaDataResultTask;
-import com.lzh.exchange.logic.handler.MetaDataExchangeHandler;
+import com.lzh.exchange.logic.MetaDataResultTask;
+import com.lzh.exchange.logic.MetaDataExchangeHandler;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.handler.timeout.ReadTimeoutHandler;

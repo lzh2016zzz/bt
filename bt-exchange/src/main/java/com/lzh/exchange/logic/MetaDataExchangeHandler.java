@@ -1,6 +1,6 @@
-package com.lzh.exchange.logic.handler;
+package com.lzh.exchange.logic;
 
-import com.lzh.exchange.common.constant.MetaDataResultTask;
+import com.lzh.exchange.logic.MetaDataResultTask;
 import com.lzh.exchange.common.util.bencode.BencodingUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
