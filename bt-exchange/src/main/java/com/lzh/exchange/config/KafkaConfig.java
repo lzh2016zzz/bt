@@ -55,8 +55,7 @@ public class KafkaConfig {
         map.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         map.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         map.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, host + ":" + port);
-        map.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "15000");
-        map.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "100");
+        map.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, 100);
         map.put(ConsumerConfig.GROUP_ID_CONFIG,groupId);
         return map;
     }
