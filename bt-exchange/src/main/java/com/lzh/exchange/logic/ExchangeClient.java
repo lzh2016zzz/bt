@@ -39,13 +39,13 @@ public class ExchangeClient {
      *
      * @throws InterruptedException
      */
-    public MetaDataResultTask createTask(String infoHashHexStr, String ip , int port) {
+    public MetaDataResultTask createTask(byte[] infoHash, String ip , int port) {
         final MetaDataResultTask result = MetaDataResultTask.metaDataResult();
-        result.future(() -> queryTask(infoHashHexStr, ip, port, result));
+        result.future(() -> queryTask(infoHash, ip, port, result));
         return result;
     }
 
-    private ChannelFuture queryTask(String infoHashHexStr, String ip, int port, MetaDataResultTask task) {
+    private ChannelFuture queryTask(byte[] infoHashHexStr, String ip, int port, MetaDataResultTask task) {
         return bootstrapFactory.build().handler(new CustomChannelInitializer(infoHashHexStr, task))
                 .connect(new InetSocketAddress(ip, port))
                 .addListener(new ConnectListener(infoHashHexStr,peerId,ip,port,task));
@@ -54,7 +54,7 @@ public class ExchangeClient {
 
     private class ConnectListener implements ChannelFutureListener {
 
-        private String infoHashHexStr;
+        private byte[] infoHash;
         //自己的peerId,直接定义为和nodeId相同即可
         private byte[] selfPeerId;
         //连接的ip
@@ -80,21 +80,15 @@ public class ExchangeClient {
          * 发送握手消息
          */
         private void sendHandshakeMessage(ChannelFuture future) {
-            byte[] infoHash;
-            try {
-                infoHash = Hex.decodeHex(infoHashHexStr);
                 byte[] sendBytes = new byte[68];
                 System.arraycopy(Constant.GET_METADATA_HANDSHAKE_PRE_BYTES, 0, sendBytes, 0, 28);
                 System.arraycopy(infoHash, 0, sendBytes, 28, Constant.BASIC_HASH_LEN);
                 System.arraycopy(selfPeerId, 0, sendBytes, 48, 20);
                 future.channel().writeAndFlush(Unpooled.copiedBuffer(sendBytes));
-            } catch (DecoderException e) {
-                log.error("info-hash转换异常",infoHashHexStr);
-            }
         }
 
-        public ConnectListener(String infoHashHexStr, byte[] selfPeerId, String ip, int port,MetaDataResultTask task) {
-            this.infoHashHexStr = infoHashHexStr;
+        public ConnectListener(byte[] infoHash, byte[] selfPeerId, String ip, int port, MetaDataResultTask task) {
+            this.infoHash = infoHash;
             this.selfPeerId = selfPeerId;
             this.ip = ip;
             this.port = port;

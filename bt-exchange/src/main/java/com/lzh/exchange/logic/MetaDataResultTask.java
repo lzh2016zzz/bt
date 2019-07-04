@@ -17,7 +17,7 @@ import java.util.function.Supplier;
 public class MetaDataResultTask {
 
 	/**
-	 * 结果
+	 *
 	 */
 	private byte[] result;
 
@@ -27,28 +27,22 @@ public class MetaDataResultTask {
 
 	private Supplier<ChannelFuture> future;
 
+
 	private MetaDataResultTask() {
 
 	}
 
+	//apis
 
-	protected MetaDataResultTask future(Supplier<ChannelFuture> future){
-		this.future = future;
-		return this;
-	}
-
-
-	protected static MetaDataResultTask metaDataResult(){
-		MetaDataResultTask metaDataResult = new MetaDataResultTask();
-		return metaDataResult;
-	}
-
-
+	/**
+	 *
+	 * @param callBack
+	 * @return
+	 */
 	public MetaDataResultTask success(Consumer<Metadata> callBack){
 		this.successCallBack = callBack;
 		return this;
 	}
-
 
 
 	public MetaDataResultTask failure(Consumer<Throwable> callBack){
@@ -62,6 +56,18 @@ public class MetaDataResultTask {
 		}
 	}
 
+	//bt-client logic
+
+	protected MetaDataResultTask future(Supplier<ChannelFuture> future){
+		this.future = future;
+		return this;
+	}
+
+
+	protected static MetaDataResultTask metaDataResult(){
+		MetaDataResultTask metaDataResult = new MetaDataResultTask();
+		return metaDataResult;
+	}
 
 	protected byte[] getResult() {
 		return result;

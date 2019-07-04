@@ -39,13 +39,10 @@ public class MessageListener {
                     if (!StringUtils.isEmpty(ip = msg.getString("ip")) &&
                             !StringUtils.isEmpty(port = msg.getInteger("port"))) {
 
-                        //b64 -> hex
-                        String hexString = Hex.encodeHexString(Base64Utils.decodeFromString(infoHash));
-
                         //创建任务
-                        log.info("新增任务: {},{}", hexString, ip + ":" + port);
+                        log.info("新增任务: {},{}", infoHash, ip + ":" + port);
 
-                        client.createTask(hexString, ip , port)
+                        client.createTask(Base64Utils.decodeFromString(infoHash), ip , port)
                                 .success((meta) -> {
                                     //成功回调
                                 })

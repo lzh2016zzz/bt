@@ -1,6 +1,5 @@
 package com.lzh.exchange.logic;
 
-import com.lzh.exchange.logic.MetaDataResultTask;
 import com.lzh.exchange.common.util.bencode.BencodingUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -23,7 +22,7 @@ import java.util.Map;
 @AllArgsConstructor
 public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
-    private String infoHashHexStr;
+    private byte[] infoHash;
 
     private MetaDataResultTask metaDataResultTask;
 
@@ -117,7 +116,7 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
         byte[] lenBytes = int2Bytes(tempExtendBytes.length + 2);
         System.arraycopy(lenBytes, 0, extendMessageBytes, 0, 4);
         System.arraycopy(tempExtendBytes, 0, extendMessageBytes, 6, tempExtendBytes.length);
-//			log.info("{}发送扩展消息:{}", infoHashHexStr, new String(extendMessageBytes, CharsetUtil.ISO_8859_1));
+//			log.info("{}发送扩展消息:{}", infoHash, new String(extendMessageBytes, CharsetUtil.ISO_8859_1));
         ctx.channel().writeAndFlush(Unpooled.copiedBuffer(extendMessageBytes));
     }
 
