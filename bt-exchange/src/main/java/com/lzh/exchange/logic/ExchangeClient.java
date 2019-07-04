@@ -45,7 +45,7 @@ public class ExchangeClient {
         final MetaDataResult result = new MetaDataResult(latch);
         bootstrapFactory.build().handler(new CustomChannelInitializer(infoHashHexStr, result))
                 .connect(new InetSocketAddress(ip, port))
-                .addListener(new ConnectListener(infoHashHexStr,peerId,ip,port));
+                .addListener(new ConnectListener(infoHashHexStr,peerId,ip,port,latch));
         return result;
     }
 
@@ -60,6 +60,8 @@ public class ExchangeClient {
 
         private int port;
 
+        private CountDownLatch countDownLatch;
+
         @Override
         public void operationComplete(ChannelFuture future) throws Exception {
             if (future.isSuccess()) {
@@ -70,6 +72,7 @@ public class ExchangeClient {
             }
             //如果失败 ,不做任何操作
             log.info("连接peer失败,ip:{},port:{}",ip,port);
+            countDownLatch.countDown();
             future.channel().close();
         }
 
@@ -90,11 +93,12 @@ public class ExchangeClient {
             }
         }
 
-        public ConnectListener(String infoHashHexStr, byte[] selfPeerId,String ip,int port) {
+        public ConnectListener(String infoHashHexStr, byte[] selfPeerId,String ip,int port,CountDownLatch countDownLatch) {
             this.infoHashHexStr = infoHashHexStr;
             this.selfPeerId = selfPeerId;
             this.ip = ip;
             this.port = port;
+            this.countDownLatch = countDownLatch;
         }
     }
 

@@ -32,7 +32,7 @@ public class KafkaConfig {
         log.info("初始化Kakfa配置..");
         ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
-        factory.setConcurrency(4);
+        factory.setConcurrency(Constant.NETTY_THREADS);
         factory.setBatchListener(true);
         factory.getContainerProperties().setPollTimeout(3000);
         return factory;

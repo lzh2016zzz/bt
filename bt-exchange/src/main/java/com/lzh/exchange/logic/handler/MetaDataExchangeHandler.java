@@ -64,7 +64,6 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
         if (metaDataResult.getResult() != null) {
             metaDataResult.setResult(ArrayUtils.addAll(metaDataResult.getResult(), MetaDataResultStrBytes));
         } else {
-            log.info("receive-result : " + MetaDataResultStrBytes);
             metaDataResult.setResult(MetaDataResultStrBytes);
         }
         //唤醒latch
@@ -124,7 +123,7 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        log.error("{}异常:{}", infoHashHexStr, cause.getMessage());
+        log.error("处理连接异常:",cause.getCause());
         //关闭
         ctx.close();
     }

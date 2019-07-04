@@ -23,7 +23,7 @@ public class Constant {
 
 
     //并发线程数配置
-    public static final int NETTY_THREADS = NettyRuntime.availableProcessors() + 1;
+    public static final int NETTY_THREADS = NettyRuntime.availableProcessors() + 2;
 
     //metadata数据, 每一分片大小 16KB, 此处为byte
     public static final long METADATA_PIECE_SIZE = 16 << 10;
