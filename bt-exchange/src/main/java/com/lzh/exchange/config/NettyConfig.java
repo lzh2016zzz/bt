@@ -1,4 +1,4 @@
-package com.lzh.exchange.logic.config;
+package com.lzh.exchange.config;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.AdaptiveRecvByteBufAllocator;
@@ -14,7 +14,7 @@ import org.springframework.context.event.ContextClosedEvent;
 
 @Configuration
 @Slf4j
-public class NettyConfig  implements ApplicationListener<ContextClosedEvent> {
+public class NettyConfig implements ApplicationListener<ContextClosedEvent> {
 
     private EventLoopGroup group;
 

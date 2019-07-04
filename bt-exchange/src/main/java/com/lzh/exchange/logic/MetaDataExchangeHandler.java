@@ -59,11 +59,11 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
      */
     private void fetchMetadataBytes(String messageStr) {
         String MetaDataResultStr = messageStr.substring(messageStr.indexOf("ee") + 2);
-        byte[] MetaDataResultStrBytes = MetaDataResultStr.getBytes(CharsetUtil.ISO_8859_1);
+        byte[] metaDataResultStrBytes = MetaDataResultStr.getBytes(CharsetUtil.ISO_8859_1);
         if (metaDataResultTask.getResult() != null) {
-            metaDataResultTask.setResult(ArrayUtils.addAll(metaDataResultTask.getResult(), MetaDataResultStrBytes));
+            metaDataResultTask.setResult(ArrayUtils.addAll(metaDataResultTask.getResult(), metaDataResultStrBytes));
         } else {
-            metaDataResultTask.setResult(MetaDataResultStrBytes);
+            metaDataResultTask.setResult(metaDataResultStrBytes);
         }
         //唤醒latch
         metaDataResultTask.doSuccess();

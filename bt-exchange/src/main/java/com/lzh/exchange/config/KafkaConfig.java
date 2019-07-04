@@ -1,4 +1,4 @@
-package com.lzh.exchange.logic.config;
+package com.lzh.exchange.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;

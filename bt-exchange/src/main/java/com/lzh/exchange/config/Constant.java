@@ -1,4 +1,4 @@
-package com.lzh.exchange.logic.config;
+package com.lzh.exchange.config;
 
 import io.netty.util.NettyRuntime;
 

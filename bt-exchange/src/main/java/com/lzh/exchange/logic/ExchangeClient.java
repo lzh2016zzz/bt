@@ -2,14 +2,11 @@ package com.lzh.exchange.logic;
 
 
 import com.lzh.exchange.common.util.NodeIdUtil;
-import com.lzh.exchange.logic.config.Constant;
-import com.lzh.exchange.logic.config.CustomChannelInitializer;
+import com.lzh.exchange.config.Constant;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.DecoderException;
-import org.apache.commons.codec.binary.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
