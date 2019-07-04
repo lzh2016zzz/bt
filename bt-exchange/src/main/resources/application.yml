@@ -10,5 +10,7 @@ logic:
     topic:
       topic-info-hash-output: info-hash-output
       topic-torrent-meta-info : torrent-meta-info
+    consumer:
+      group-id: exchange-group
 logging:
   com.lzh: info

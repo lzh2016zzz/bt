@@ -32,12 +32,14 @@ public class NettyConfig  implements ApplicationListener<ContextClosedEvent> {
 
     @Bean(name = "clientBootstrap")
     public Bootstrap bootstrap() {
+        log.info("初始化bootstrap服务。。");
         group = group();
         Bootstrap b = new Bootstrap();
         b.group(new NioEventLoopGroup(1))
                 .channel(NioSocketChannel.class)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 3000)
                 .option(ChannelOption.RCVBUF_ALLOCATOR, new AdaptiveRecvByteBufAllocator(1, 102400, Integer.MAX_VALUE));
+
         return b;
     }
 
