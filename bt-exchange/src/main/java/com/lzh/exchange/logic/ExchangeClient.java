@@ -46,27 +46,31 @@ public class ExchangeClient {
         final MetaDataResult result = new MetaDataResult(latch);
         bootstrapFactory.build().handler(new CustomChannelInitializer(infoHashHexStr, result))
                 .connect(new InetSocketAddress(ip, port))
-                .addListener(new ConnectListener(infoHashHexStr,peerId));
+                .addListener(new ConnectListener(infoHashHexStr,peerId,ip,port));
         return result;
     }
 
 
-    @AllArgsConstructor
     private class ConnectListener implements ChannelFutureListener {
+
         private String infoHashHexStr;
         //自己的peerId,直接定义为和nodeId相同即可
         private byte[] selfPeerId;
+
+        private String ip;
+
+        private int port;
 
         @Override
         public void operationComplete(ChannelFuture future) throws Exception {
             if (future.isSuccess()) {
                 //连接成功发送握手消息
-                log.info("连接成功，查询info-hash信息，，");
+                log.info("连接peer成功，向peer查询info-hash");
                 sendHandshakeMessage(future);
                 return;
             }
             //如果失败 ,不做任何操作
-            log.info("连接失败。。");
+            log.info("连接peer失败,ip:{},port:{}",ip,port);
             future.channel().close();
         }
 
@@ -85,6 +89,13 @@ public class ExchangeClient {
             } catch (DecoderException e) {
                 log.error("info-hash转换异常",infoHashHexStr);
             }
+        }
+
+        public ConnectListener(String infoHashHexStr, byte[] selfPeerId,String ip,int port) {
+            this.infoHashHexStr = infoHashHexStr;
+            this.selfPeerId = selfPeerId;
+            this.ip = ip;
+            this.port = port;
         }
     }
 

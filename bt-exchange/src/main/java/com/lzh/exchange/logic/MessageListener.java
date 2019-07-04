@@ -1,5 +1,6 @@
 package com.lzh.exchange.logic;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
@@ -7,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Base64Utils;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 @Slf4j
@@ -20,28 +22,31 @@ public class MessageListener {
     @KafkaListener(id = "topic-torrent-meta-info-listener",
     topics = "${logic.kafka.topic.topic-info-hash-output}")
     public void listen(String msgData) {
-        log.info("接收数据 : "+ msgData);
-        JSONObject message = null;
+        //log.info("接收报文 : "+ msgData);
+        JSONArray messages = null;
         try {
-             message = JSONObject.parseObject(msgData);
+              msgData = "[" + msgData + "]";
+              messages = JSONObject.parseArray(msgData);
         }catch (Exception ex){
             log.error("解析json数据异常，报文: " + msgData);
         }
-        if(message != null) {
-            String infoHash;
-            if (!StringUtils.isEmpty(infoHash = message.getString("infoHash"))) {
-                String ip;
-                int port;
-                if (!StringUtils.isEmpty(ip = message.getString("ip")) &&
-                        !StringUtils.isEmpty(port = message.getInteger("port"))) {
-                    String hexString = Hex.encodeHexString(Base64Utils.decodeFromString(infoHash));
-                    log.info("获取数据: {},{}", hexString, ip + ":" + port);
-                    client.send(hexString, ip , port);
+        if(!CollectionUtils.isEmpty(messages)) {
+            messages.stream().map(m -> (JSONObject) m).forEach(msg -> {
+                String infoHash;
+                if (!StringUtils.isEmpty(infoHash = msg.getString("infoHash"))) {
+                    String ip;
+                    int port;
+                    if (!StringUtils.isEmpty(ip = msg.getString("ip")) &&
+                            !StringUtils.isEmpty(port = msg.getInteger("port"))) {
+                        String hexString = Hex.encodeHexString(Base64Utils.decodeFromString(infoHash));
+                        log.info("获取数据: {},{}", hexString, ip + ":" + port);
+                        client.send(hexString, ip , port);
+                    }
+                } else {
+                    log.error("获取到的info-hash为空，无法解析");
+                    return;
                 }
-            } else {
-                log.error("获取到的info-hash为空，无法解析");
-                return;
-            }
+            });
         }
 
     }

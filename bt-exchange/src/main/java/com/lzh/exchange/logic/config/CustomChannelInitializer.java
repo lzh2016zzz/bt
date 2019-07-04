@@ -16,7 +16,7 @@ public class CustomChannelInitializer extends ChannelInitializer {
 		@Override
 		protected void initChannel(Channel ch) throws Exception {
 			ch.pipeline()
-					.addLast(new ReadTimeoutHandler(10))
+					.addLast(new ReadTimeoutHandler(30))
 					.addLast(new MetaDataExchangeHandler(infoHashHexStr, result));
 
 		}
