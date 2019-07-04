@@ -45,7 +45,6 @@ public class MessageListener {
                         //创建任务
                         log.info("获取数据: {},{}", hexString, ip + ":" + port);
                         client.createTask(hexString, ip , port)
-                                .await(10, TimeUnit.SECONDS)
                                 .success((meta) -> {
                                     //成功回调
                                 }).start();

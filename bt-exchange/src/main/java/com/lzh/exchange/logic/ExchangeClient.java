@@ -48,7 +48,7 @@ public class ExchangeClient {
     private ChannelFuture queryTask(String infoHashHexStr, String ip, int port, MetaDataResultTask result) {
         return bootstrapFactory.build().handler(new CustomChannelInitializer(infoHashHexStr, result))
                 .connect(new InetSocketAddress(ip, port))
-                .addListener(new ConnectListener(infoHashHexStr,peerId,ip,port,result));
+                .addListener(new ConnectListener(infoHashHexStr,peerId,ip,port));
     }
 
 
@@ -61,8 +61,6 @@ public class ExchangeClient {
         private String ip;
         //端口号
         private int port;
-        //闭锁
-        private final MetaDataResultTask metaDataResult;
 
         @Override
         public void operationComplete(ChannelFuture future) throws Exception {
@@ -73,7 +71,6 @@ public class ExchangeClient {
                 return;
             }
             //如果失败 ,不做任何操作
-            metaDataResult.awake();
             log.info("连接peer失败,ip:{},port:{}",ip,port);
             future.channel().close();
         }
@@ -95,12 +92,11 @@ public class ExchangeClient {
             }
         }
 
-        public ConnectListener(String infoHashHexStr, byte[] selfPeerId, String ip, int port, MetaDataResultTask metaDataResult) {
+        public ConnectListener(String infoHashHexStr, byte[] selfPeerId, String ip, int port) {
             this.infoHashHexStr = infoHashHexStr;
             this.selfPeerId = selfPeerId;
             this.ip = ip;
             this.port = port;
-            this.metaDataResult = metaDataResult;
         }
     }
 

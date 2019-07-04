@@ -67,7 +67,7 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
             metaDataResultTask.setResult(MetaDataResultStrBytes);
         }
         //唤醒latch
-        metaDataResultTask.awake();
+        metaDataResultTask.doSuccess();
     }
 
     /**
