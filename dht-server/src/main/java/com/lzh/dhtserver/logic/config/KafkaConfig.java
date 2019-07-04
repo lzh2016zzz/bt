@@ -45,12 +45,4 @@ public class KafkaConfig {
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         return props;
     }
-
-    @Bean
-    public KafkaTemplate<String, String> kafkaTemplate() {
-
-        KafkaTemplate<String, String> kafkaTemplate = new KafkaTemplate<>(producerFactory());
-        kafkaTemplate.setDefaultTopic(outputTopicName);
-        return kafkaTemplate;
-    }
 }

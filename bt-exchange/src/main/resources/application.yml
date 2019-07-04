@@ -7,7 +7,8 @@ logic:
     broker:
       host: 3.113.71.211
       port: 9092
-    topic-info-hash-output: info-hash-output
-    topic-torrent-meta-info : torrent-meta-info
+    topic:
+      topic-info-hash-output: info-hash-output
+      topic-torrent-meta-info : torrent-meta-info
 logging:
   com.lzh: info

@@ -8,6 +8,7 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.CharsetUtil;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -19,6 +20,7 @@ import java.util.Map;
  **/
 @Slf4j
 @ChannelHandler.Sharable
+@AllArgsConstructor
 public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     private String infoHashHexStr;
@@ -136,8 +138,4 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
         return des;
     }
 
-    public MetaDataExchangeHandler(String infoHashHexStr, MetaDataResult MetaDataResult) {
-        this.infoHashHexStr = infoHashHexStr;
-        this.metaDataResult = MetaDataResult;
-    }
 }
