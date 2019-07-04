@@ -21,20 +21,27 @@ public class MessageListener {
     topics = "${logic.kafka.topic.topic-info-hash-output}")
     public void listen(String msgData) {
         log.info("接收数据 : "+ msgData);
-        JSONObject jsonObject = JSONObject.parseObject(msgData);
-        String infoHash;
-        if(!StringUtils.isEmpty(infoHash = jsonObject.getString("infoHash"))){
-            String ip;
-            String port;
-            if(!StringUtils.isEmpty(ip = jsonObject.getString("ip")) &&
-                    !StringUtils.isEmpty(port = jsonObject.getString("port"))){
-                String hexString = Hex.encodeHexString(Base64Utils.decodeFromString(infoHash));
-                log.info("获取数据: {},{}",hexString,ip + ":" + port);
-                client.send(hexString,ip + ":" + port);
+        JSONObject message = null;
+        try {
+             message = JSONObject.parseObject(msgData);
+        }catch (Exception ex){
+            log.error("解析json数据异常，报文: " + msgData);
+        }
+        if(message != null) {
+            String infoHash;
+            if (!StringUtils.isEmpty(infoHash = message.getString("infoHash"))) {
+                String ip;
+                int port;
+                if (!StringUtils.isEmpty(ip = message.getString("ip")) &&
+                        !StringUtils.isEmpty(port = message.getInteger("port"))) {
+                    String hexString = Hex.encodeHexString(Base64Utils.decodeFromString(infoHash));
+                    log.info("获取数据: {},{}", hexString, ip + ":" + port);
+                    client.send(hexString, ip , port);
+                }
+            } else {
+                log.error("获取到的info-hash为空，无法解析");
+                return;
             }
-        } else {
-            log.error("获取到的info-hash为空，无法解析");
-            return;
         }
 
     }

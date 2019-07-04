@@ -41,12 +41,11 @@ public class ExchangeClient {
      *
      * @throws InterruptedException
      */
-    public MetaDataResult send(String infoHashHexStr,String peer) {
+    public MetaDataResult send(String infoHashHexStr,String ip ,int port) {
         CountDownLatch latch = new CountDownLatch(1);
         final MetaDataResult result = new MetaDataResult(latch);
-        String[] ipPort = peer.split(":");
         bootstrapFactory.build().handler(new CustomChannelInitializer(infoHashHexStr, result))
-                .connect(new InetSocketAddress(ipPort[0], Integer.parseInt(ipPort[1])))
+                .connect(new InetSocketAddress(ip, port))
                 .addListener(new ConnectListener(infoHashHexStr,peerId));
         return result;
     }
