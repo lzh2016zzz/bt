@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -17,15 +18,32 @@ import java.util.function.Supplier;
 public class MetaDataResultTask {
 
 	/**
-	 *
+	 * metadata 元数据的缓冲区
 	 */
 	private ByteBuf result;
 
+	/**
+	 * 获取元数据成功回调
+	 */
 	private Consumer<Metadata> successCallBack;
 
+	/**
+	 * 获取元数据失败回调
+	 */
 	private Consumer<Throwable> failureCallBack;
 
+	/**
+	 * 查询任务
+	 */
 	private Supplier<ChannelFuture> future;
+
+	/**
+	 * 严格模式 开启时,会对peer返回的数据大小做校验 必须和metaDataSize相等
+	 */
+	private boolean strictMode = false;
+
+	private CountDownLatch countDownLatch = new CountDownLatch(1);
+	//TODO :超时后是否直接执行
 
 
 	private MetaDataResultTask() {
