@@ -9,10 +9,10 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.CharsetUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /***
  * bep9 & bep 10
@@ -60,11 +60,9 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
     private void fetchMetadataBytes(String messageStr) {
         String MetaDataResultStr = messageStr.substring(messageStr.indexOf("ee") + 2);
         byte[] metaDataResultStrBytes = MetaDataResultStr.getBytes(CharsetUtil.ISO_8859_1);
-        if (metaDataResultTask.getResult() != null) {
-            metaDataResultTask.setResult(ArrayUtils.addAll(metaDataResultTask.getResult(), metaDataResultStrBytes));
-        } else {
-            metaDataResultTask.setResult(metaDataResultStrBytes);
-        }
+        Optional.ofNullable(metaDataResultTask.getResult())
+                .orElseThrow(() -> new NullPointerException("metaDataTask.result初始化异常,null"))
+        .writeBytes(metaDataResultStrBytes);
         //通知task获取metadata成功
         metaDataResultTask.doSuccess();
     }
@@ -83,6 +81,9 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
         //分块数
         int blockSum = (int) Math.ceil((double) metadataSize / 5);
         log.info("该种子metadata大小:{},分块数:{}",metadataSize,blockSum);
+
+        initResult(metadataSize);
+
         //发送metadata请求
         for (int i = 0; i < blockSum; i++) {
             Map<String, Object> metadataRequestMap = new LinkedHashMap<>();
@@ -98,6 +99,16 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
             ctx.channel().writeAndFlush(Unpooled.copiedBuffer(metadataRequestBytes));
         }
     }
+
+    /**
+     * 初始化byteBuf
+     * @param metadataSize
+     */
+    private void initResult(int metadataSize) {
+        ByteBuf byteBuf = Unpooled.buffer(metadataSize >> 1, metadataSize);
+        metaDataResultTask.setResult(byteBuf);
+    }
+
 
     /**
      * 发送扩展消息

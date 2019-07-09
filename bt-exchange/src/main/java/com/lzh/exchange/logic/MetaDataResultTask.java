@@ -3,10 +3,10 @@ package com.lzh.exchange.logic;
 import com.alibaba.fastjson.JSON;
 import com.lzh.exchange.common.entity.Metadata;
 import com.lzh.exchange.common.util.bencode.BencodingUtils;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import io.netty.util.CharsetUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.Map;
 import java.util.Optional;
@@ -19,7 +19,7 @@ public class MetaDataResultTask {
 	/**
 	 *
 	 */
-	private byte[] result;
+	private ByteBuf result;
 
 	private Consumer<Metadata> successCallBack;
 
@@ -69,17 +69,18 @@ public class MetaDataResultTask {
 		return metaDataResult;
 	}
 
-	protected byte[] getResult() {
+	protected ByteBuf getResult() {
 		return result;
 	}
 
-	protected void setResult(byte[] result) {
+	protected void setResult(ByteBuf result) {
 		this.result = result;
 	}
 
 	protected void doSuccess(){
 		Optional.ofNullable(this.result)
-				.filter(k -> !ArrayUtils.isEmpty(k))
+				.filter(ByteBuf::hasArray)
+				.map(ByteBuf::array)
 				.map(this::bytes2Metadata)
 				.ifPresent(metadata -> successCallBack.accept(metadata));
 	}
