@@ -37,7 +37,7 @@ public class NettyConfig implements ApplicationListener<ContextClosedEvent> {
         Bootstrap b = new Bootstrap();
         b.group(new NioEventLoopGroup(Constant.NETTY_THREADS))
                 .channel(NioSocketChannel.class)
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, timeoutSec)
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, timeoutSec * 1000)
                 .option(ChannelOption.RCVBUF_ALLOCATOR, new AdaptiveRecvByteBufAllocator(1, 102400, Integer.MAX_VALUE));
 
         return b;
