@@ -106,7 +106,7 @@ public class NettyConfig implements ApplicationListener<ContextClosedEvent> {
             Optional<String> stringStream = Files.lines(path, CharsetUtil.UTF_8)
                     .flatMap(line -> Arrays.stream(line.split(" "))).findFirst();
             if (stringStream.isPresent()) {
-                log.info("self-node-Id : {}",stringStream.get());
+                log.info("self-node-Id : {}",stringStream.get().trim());
                 return Hex.decodeHex(stringStream.get());
             }
         } else {
