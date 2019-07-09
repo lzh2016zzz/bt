@@ -17,6 +17,7 @@ import io.netty.channel.socket.DatagramPacket;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.support.MessageBuilder;
@@ -48,6 +49,10 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
 
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
+
+    @Autowired
+    @Qualifier("selfNodeId")
+    private byte[] selfNodeId;
 
     public static final byte[] EMPTY_BYTES = new byte[]{};
 
@@ -306,7 +311,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
                     try {
                         Node node = NODES_QUEUE.poll();
                         if (node != null) {
-                            findNode(node.getAddr(), node.getNodeId(), NodeIdUtil.createRandomNodeId());
+                            findNode(node.getAddr(), node.getNodeId(), selfNodeId);
                         }
                     } catch (Exception e) {
                     }
