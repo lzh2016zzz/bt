@@ -7,6 +7,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,10 +19,16 @@ public class NettyConfig implements ApplicationListener<ContextClosedEvent> {
 
     private EventLoopGroup group;
 
+    @Value("${logic.connect-timeout-sec}")
+    private int timeoutSec;
+
+
     @Bean(name = "group")
     public EventLoopGroup group() {
         return new NioEventLoopGroup();
     }
+
+
 
     @Bean(name = "clientBootstrap")
     public Bootstrap bootstrap() {
@@ -30,7 +37,7 @@ public class NettyConfig implements ApplicationListener<ContextClosedEvent> {
         Bootstrap b = new Bootstrap();
         b.group(new NioEventLoopGroup(Constant.NETTY_THREADS))
                 .channel(NioSocketChannel.class)
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, timeoutSec)
                 .option(ChannelOption.RCVBUF_ALLOCATOR, new AdaptiveRecvByteBufAllocator(1, 102400, Integer.MAX_VALUE));
 
         return b;
