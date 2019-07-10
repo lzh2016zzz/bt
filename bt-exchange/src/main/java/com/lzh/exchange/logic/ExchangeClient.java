@@ -34,7 +34,6 @@ public class ExchangeClient {
     /**
      * 发送数据
      *
-     * @throws InterruptedException
      */
     public MetaDataResultTask createTask(byte[] infoHash, String ip , int port) {
         final MetaDataResultTask result = MetaDataResultTask.metaDataResult();

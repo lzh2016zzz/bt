@@ -7,24 +7,22 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.CharsetUtil;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /***
  * bep9 & bep 10
  **/
 @Slf4j
 @ChannelHandler.Sharable
-@AllArgsConstructor
 public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
-    private byte[] infoHash;
-
     private MetaDataResultTask metaDataResultTask;
+
+    private int metadataSize;
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
@@ -58,15 +56,17 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
      * 获取metadataBytes
      */
     private void fetchMetadataBytes(String messageStr) {
+
         String MetaDataResultStr = messageStr.substring(messageStr.indexOf("ee") + 2);
         byte[] metaDataResultStrBytes = MetaDataResultStr.getBytes(CharsetUtil.ISO_8859_1);
-        if (metaDataResultTask.getResult() != null) {
-            metaDataResultTask.setResult(ArrayUtils.addAll(metaDataResultTask.getResult(), metaDataResultStrBytes));
-        } else {
-            metaDataResultTask.setResult(metaDataResultStrBytes);
-        }
+        ByteBuf buf;
+        Optional.ofNullable(buf = metaDataResultTask.getResult())
+                .orElseThrow(() -> new NullPointerException("metaDataTask.result初始化异常,null"))
+                .writeBytes(metaDataResultStrBytes);
         //通知task获取metadata成功
-        metaDataResultTask.doSuccess();
+        if (buf.array().length >= metadataSize) {
+            metaDataResultTask.doSuccess();
+        }
     }
 
     /**
@@ -79,10 +79,11 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
         int metadataSizeIndex = messageStr.indexOf(metadataSizeStr) + metadataSizeStr.length() + 1;
         String otherStr = messageStr.substring(metadataSizeIndex);
         //metadata_size值
-        int metadataSize = Integer.parseInt(otherStr.substring(0, otherStr.indexOf("e")));
+        metadataSize = Integer.parseInt(otherStr.substring(0, otherStr.indexOf("e")));
         //分块数
         int blockSum = (int) Math.ceil((double) metadataSize / 5);
-        log.info("该种子metadata大小:{},分块数:{}",metadataSize,blockSum);
+        log.info("该种子metadata大小:{},分块数:{}", metadataSize, blockSum);
+        initResult(metadataSize);
         //发送metadata请求
         for (int i = 0; i < blockSum; i++) {
             Map<String, Object> metadataRequestMap = new LinkedHashMap<>();
@@ -98,6 +99,17 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
             ctx.channel().writeAndFlush(Unpooled.copiedBuffer(metadataRequestBytes));
         }
     }
+
+    /**
+     * 初始化byteBuf
+     *
+     * @param metadataSize
+     */
+    private void initResult(int metadataSize) {
+        ByteBuf byteBuf = Unpooled.buffer(metadataSize >> 1, metadataSize);
+        metaDataResultTask.setResult(byteBuf);
+    }
+
 
     /**
      * 发送扩展消息
@@ -122,7 +134,7 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        log.error("处理连接异常:",cause.getCause());
+        log.error("处理连接异常:", cause.getCause());
         //关闭
         ctx.close();
     }
@@ -136,4 +148,7 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
         return des;
     }
 
+    public MetaDataExchangeHandler(MetaDataResultTask metaDataResultTask) {
+        this.metaDataResultTask = metaDataResultTask;
+    }
 }
