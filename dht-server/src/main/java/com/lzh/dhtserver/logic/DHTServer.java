@@ -8,6 +8,7 @@ import io.netty.channel.socket.DatagramPacket;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -34,11 +35,17 @@ public class DHTServer {
     private InetSocketAddress udpPort;
 
     private ChannelFuture serverChannelFuture;
-
     /**
      * 本机 DHT 节点 ID
      */
-    public static final byte[] SELF_NODE_ID = NodeIdUtil.createRandomNodeId();
+    @Autowired
+    @Qualifier("selfNodeId")
+    private byte[] selfNodeId;
+
+
+    public byte[] getSelfNodeId() {
+        return selfNodeId;
+    }
 
     /**
      * 启动节点列表
