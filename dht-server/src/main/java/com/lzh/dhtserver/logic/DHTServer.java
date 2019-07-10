@@ -1,14 +1,12 @@
 package com.lzh.dhtserver.logic;
 
 
-import com.lzh.dhtserver.common.util.NodeIdUtil;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.socket.DatagramPacket;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -63,7 +61,7 @@ public class DHTServer {
      */
     @PostConstruct
     public void start() throws Exception {
-        log.info("启动dht-server,udpPort :{}  ", udpPort);
+        log.info("启动dht-server,udpPort :{}  ", udpPort.getPort());
         serverChannelFuture = b.bind(udpPort).sync();
         serverChannelFuture.channel().closeFuture();
         log.info("启动dht-server成功.");
