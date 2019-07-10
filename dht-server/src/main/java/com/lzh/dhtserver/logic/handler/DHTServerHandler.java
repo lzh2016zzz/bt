@@ -118,7 +118,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
      */
     private void responsePing(byte[] t, InetSocketAddress sender) {
         Map r = new HashMap<String, Object>();
-        r.put("id", dhtServer.getSelfNodeId());
+        r.put("id", selfNodeId);
         DatagramPacket packet = createPacket(t, "r", r, sender);
         dhtServer.sendKRPC(packet);
         //log.info("response ping[{}]", sender);
@@ -133,7 +133,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
      */
     private void responseFindNode(byte[] t, InetSocketAddress sender) {
         HashMap<String, Object> r = new HashMap<>();
-        r.put("id", dhtServer.getSelfNodeId());
+        r.put("id", selfNodeId);
         r.put("nodes", EMPTY_BYTES);
         DatagramPacket packet = createPacket(t, "r", r, sender);
         dhtServer.sendKRPC(packet);
@@ -151,7 +151,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
         HashMap<String, Object> r = new HashMap<>();
         r.put("token", new byte[]{info_hash[0], info_hash[1]});
         r.put("nodes", EMPTY_BYTES);
-        r.put("id", NodeIdUtil.getNeighbor(dhtServer.getSelfNodeId(), info_hash));
+        r.put("id", NodeIdUtil.getNeighbor(selfNodeId, info_hash));
         DatagramPacket packet = createPacket(t, "r", r, sender);
         dhtServer.sendKRPC(packet);
         //log.info("response get_peers[{}]", sender);
@@ -184,7 +184,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
         }
 
         HashMap<String, Object> r = new HashMap<>();
-        r.put("id", NodeIdUtil.getNeighbor(dhtServer.getSelfNodeId(), info_hash));
+        r.put("id", NodeIdUtil.getNeighbor(selfNodeId, info_hash));
         DatagramPacket packet = createPacket(t, "r", r, sender);
         dhtServer.sendKRPC(packet);
         // 将 info_hash 放进消息队列
@@ -253,7 +253,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
      */
     public void joinDHT() {
         for (InetSocketAddress addr : DHTServer.BOOTSTRAP_NODES) {
-            findNode(addr, null, dhtServer.getSelfNodeId());
+            findNode(addr, null, selfNodeId);
         }
     }
 
@@ -268,7 +268,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
         HashMap<String, Object> map = new HashMap<>();
         map.put("target", target);
         if (nid != null)
-            map.put("id", NodeIdUtil.getNeighbor(dhtServer.getSelfNodeId(), nid));
+            map.put("id", NodeIdUtil.getNeighbor(selfNodeId, nid));
         DatagramPacket packet = createPacket("find_node".getBytes(), "q", map, address);
         dhtServer.sendKRPC(packet);
     }
@@ -286,7 +286,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
         map.put("t", t);
         map.put("y", y);
         if (!arg.containsKey("id"))
-            arg.put("id", dhtServer.getSelfNodeId());
+            arg.put("id", selfNodeId);
 
         if (y.equals("q")) {
             map.put("q", t);
