@@ -27,5 +27,4 @@ public class Constant {
 
     //metadata数据, 每一分片大小 16KB, 此处为byte
     public static final long METADATA_PIECE_SIZE = 16 << 10;
-
 }
