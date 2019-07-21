@@ -6,8 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
-import java.util.Date;
-
 
 //@Entity
 @AllArgsConstructor
@@ -17,13 +15,6 @@ import java.util.Date;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Metadata {
 
-    /**
-     * mysql主键
-     * 目前弃用
-     */
-//    @Id
-//    @GeneratedValue
-    private Long id;
 
 
     /**
@@ -31,6 +22,12 @@ public class Metadata {
      */
     
     private String infoHash;
+
+
+    /**
+     * 是否单文件
+     */
+    private boolean single;
 
     /**
      * 名字
@@ -45,18 +42,12 @@ public class Metadata {
     private Long length;
 
 
-
     /**
      * 热度
      */
     
     private Long hot = 0L;
 
-    /**
-     * es中的主键id
-     */
-    
-    private String _id;
 
     /**
      * 种子类型
@@ -64,28 +55,4 @@ public class Metadata {
     private Integer type;
 
 
-    /**
-     * 创建时间
-     */
-    
-    private Date createTime = new Date();
-
-    /**
-     * 修改时间
-     */
-    private Date updateTime = new Date();
-
-    /**
-     * 文件信息 json
-     */
-    private String infoString;
-
-
-    public Metadata(String infoHash, String infoString, String name, Long length, Integer type) {
-        this.infoHash = infoHash;
-        this.infoString = infoString;
-        this.name = name;
-        this.length = length;
-        this.type = type;
-    }
 }

@@ -1,6 +1,6 @@
 package com.lzh.exchange.logic;
 
-import com.lzh.exchange.common.util.bencode.BencodingUtils;
+import com.lzh.exchange.common.util.Bencode;
 import com.lzh.exchange.config.Constant;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -9,6 +9,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.CharsetUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -24,6 +25,9 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
     private MetaDataResultTask metaDataResultTask;
 
     private int metadataSize;
+
+    @Autowired
+    private Bencode bencode;
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) {
@@ -89,7 +93,7 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
         metadataSize = Integer.parseInt(otherStr.substring(0, otherStr.indexOf("e")));
         //分块数
         int blockSum = (int) Math.ceil((double) metadataSize / Constant.METADATA_PIECE_SIZE);
-        log.info("该种子metadata大小:{},分块数:{}", metadataSize, blockSum);
+        log.info("metadata size :{},block num:{}", metadataSize, blockSum);
         initResult(metadataSize);
         //发送metadata请求
         Map<String, Object> metadataRequestMap = new LinkedHashMap<>();
@@ -123,7 +127,7 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
     }
 
     private void sendExtMessage(ChannelHandlerContext ctx, Map<String, Object> extendMessageMap) {
-        byte[] tempExtendBytes = BencodingUtils.encode(extendMessageMap);
+        byte[] tempExtendBytes = bencode.encode(extendMessageMap);
         byte[] extendMessageBytes = new byte[tempExtendBytes.length + 6];
         extendMessageBytes[4] = 20;
         extendMessageBytes[5] = 0;
@@ -135,7 +139,7 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        log.error("处理连接异常:", cause.getCause());
+        log.error("handling connection exception:", cause.getCause());
         //关闭
         ctx.close();
     }

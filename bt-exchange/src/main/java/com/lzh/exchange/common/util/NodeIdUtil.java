@@ -2,9 +2,6 @@ package com.lzh.exchange.common.util;
 
 import java.util.Random;
 
-/***
- * NodeId 生成工具
- **/
 public class NodeIdUtil {
 
 	public static byte[] createRandomNodeId() {

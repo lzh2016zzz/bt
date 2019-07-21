@@ -1,5 +1,5 @@
 import com.alibaba.fastjson.JSON;
-import com.lzh.exchange.common.util.bencode.BencodingUtils;
+import com.lzh.exchange.common.util.Bencode;
 import io.netty.util.CharsetUtil;
 import org.apache.commons.codec.binary.Hex;
 
@@ -13,7 +13,8 @@ public class MetaDataParser {
         byte[]b = Hex.decodeHex(metadataHex);
         String s = new String(b, CharsetUtil.UTF_8);
         String s2 = s.substring(0,s.indexOf("6:pieces")) + "e";
-        Map map = BencodingUtils.decode(s2.getBytes(CharsetUtil.UTF_8));
+        Bencode bencode = new Bencode(CharsetUtil.UTF_8);
+        Map map = bencode.decode(s2.getBytes(CharsetUtil.UTF_8),Map.class);
         System.out.println(JSON.toJSONString(map));
         System.out.println(s2);
     }

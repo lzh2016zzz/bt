@@ -1,11 +1,13 @@
 package com.lzh.exchange.config;
 
+import com.lzh.exchange.common.util.Bencode;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.AdaptiveRecvByteBufAllocator;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.util.CharsetUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
@@ -29,24 +31,34 @@ public class NettyConfig implements ApplicationListener<ContextClosedEvent> {
     }
 
 
+    @Bean(name = "bEncode")
+    public Bencode bEncoder() {
+        return new Bencode(CharsetUtil.UTF_8);
+    }
 
     @Bean(name = "clientBootstrap")
     public Bootstrap bootstrap() {
-        log.info("初始化bootstrap bean。。");
+        log.info("init bootstrap bean。。");
         group = group();
+        int threads = Constant.NETTY_THREADS;
+        int connectTimeout = timeoutSec * 1000;
+        int minBufferSize = 1;
+        int initialBufferSize = 102400;
+        int maximumBufferSize = Integer.MAX_VALUE;
+        log.info("bootstrap config value : [threads : {} ,connectTimeout : {} ,minBufferSize : {} ,initialBufferSize : {},maximumBufferSize :{}]"
+                ,threads,connectTimeout,minBufferSize,initialBufferSize,maximumBufferSize);
         Bootstrap b = new Bootstrap();
-        b.group(new NioEventLoopGroup(Constant.NETTY_THREADS))
+        b.group(new NioEventLoopGroup(threads))
                 .channel(NioSocketChannel.class)
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, timeoutSec * 1000)
-                .option(ChannelOption.RCVBUF_ALLOCATOR, new AdaptiveRecvByteBufAllocator(1, 102400, Integer.MAX_VALUE));
-
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeout)
+                .option(ChannelOption.RCVBUF_ALLOCATOR, new AdaptiveRecvByteBufAllocator(minBufferSize, initialBufferSize, maximumBufferSize));
         return b;
     }
 
 
     @Override
     public void onApplicationEvent(ContextClosedEvent contextClosedEvent) {
-        if(contextClosedEvent.getApplicationContext().getParent() == null) {
+        if (contextClosedEvent.getApplicationContext().getParent() == null) {
             group.shutdownGracefully();
         }
     }

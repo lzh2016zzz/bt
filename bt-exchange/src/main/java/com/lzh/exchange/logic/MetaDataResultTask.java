@@ -1,11 +1,12 @@
 package com.lzh.exchange.logic;
 
 import com.lzh.exchange.common.entity.Metadata;
-import com.lzh.exchange.common.util.bencode.BencodingUtils;
+import com.lzh.exchange.common.util.Bencode;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import io.netty.util.CharsetUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Map;
 import java.util.Optional;
@@ -35,6 +36,10 @@ public class MetaDataResultTask {
      * 查询任务
      */
     private Supplier<ChannelFuture> future;
+
+
+    @Autowired
+    private Bencode bencode;
 
     /**
      * 严格模式 开启时,会对peer返回的数据大小做校验 必须和metaDataSize相等
@@ -109,13 +114,14 @@ public class MetaDataResultTask {
     /**
      * byte[] 转 {@link Metadata}
      */
+    @SuppressWarnings("unchecked")
     private Metadata bytes2Metadata(byte[] bytes) {
         String metadataStr = new String(bytes, CharsetUtil.UTF_8);
         return Optional.of(metadataStr.indexOf("6:pieces"))
                 .filter(k -> k != -1)
                 .map(endIndex -> {
                     String s = metadataStr.substring(0, endIndex) + "e";
-                    Map<String, ?> resultMap = BencodingUtils.decode(s.getBytes(CharsetUtil.UTF_8));
+                    Map<String, ?> resultMap = bencode.decode(s.getBytes(CharsetUtil.UTF_8),Map.class);
                     if (resultMap != null) {
                         return new Metadata();
                     }

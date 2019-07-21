@@ -27,7 +27,7 @@ public class MessageListener {
               msgData = "[" + msgData + "]";
               messages = JSONObject.parseArray(msgData);
         }catch (Exception ex){
-            log.error("解析json数据异常，报文: " + msgData);
+            log.error("parsing json error,data,: " + msgData);
         }
         if(!CollectionUtils.isEmpty(messages)) {
             messages.stream().map(m -> (JSONObject) m).forEach(msg -> {
@@ -39,7 +39,7 @@ public class MessageListener {
                             !StringUtils.isEmpty(port = msg.getInteger("port"))) {
 
                         //创建任务
-                        log.info("新增任务: {},{}", infoHash, ip + ":" + port);
+                        log.info("add task: {},{}", infoHash, ip + ":" + port);
 
                         client.createTask(Base64Utils.decodeFromString(infoHash), ip , port)
                                 .success((meta) -> {
@@ -49,7 +49,7 @@ public class MessageListener {
                                 .start();
                     }
                 } else {
-                    log.error("获取到的info-hash为空，无法解析");
+                    log.error("info-hash is null or empty string ,parsing failure");
                     return;
                 }
             });

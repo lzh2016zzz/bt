@@ -26,10 +26,10 @@ public class ConnectListener implements ChannelFutureListener {
     public void operationComplete(ChannelFuture future) {
         if (future.isSuccess()) {
             //连接成功发送握手消息
-            log.info("连接peer成功，向peer[{}:{}]查询info-hash", ip, port);
+            log.info("connecting to node [{}:{} successful，send handshake message", ip, port);
             sendHandshakeMessage(future);
         } else {
-            task.doFailure(() -> new SocketException("连接peer失败"));
+            task.doFailure(() -> new SocketException("connecting to node failure"));
             future.channel().close();
         }
     }
