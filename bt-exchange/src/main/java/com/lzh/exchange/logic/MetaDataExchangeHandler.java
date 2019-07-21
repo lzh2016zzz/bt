@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Optional;
 
 /***
  * bep9 & bep 10
@@ -74,10 +73,7 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
          */
         String MetaDataResultStr = messageStr.substring(messageStr.indexOf("ee") + 2);
         byte[] metaDataResultStrBytes = MetaDataResultStr.getBytes(CharsetUtil.ISO_8859_1);
-        ByteBuf buf;
-        Optional.ofNullable(buf = metaDataResultTask.getResult())
-                .orElseThrow(() -> new NullPointerException("metaDataTask.result初始化异常,null"))
-                .writeBytes(metaDataResultStrBytes);
+        metaDataResultTask.getResult().writeBytes(metaDataResultStrBytes);
         metaDataResultTask.doSuccess();
         ctx.close();
     }
