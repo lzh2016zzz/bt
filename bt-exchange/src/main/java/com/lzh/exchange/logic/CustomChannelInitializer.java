@@ -8,13 +8,14 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class CustomChannelInitializer extends ChannelInitializer {
 
-		private byte[] infoHash;
-		private final MetaDataResultTask result;
+    private final byte[] infoHash;
 
-		@Override
-		protected void initChannel(Channel ch) throws Exception {
-			ch.pipeline()
-					.addLast(new ReadTimeoutHandler(30))
-					.addLast(new MetaDataExchangeHandler(result));
-		}
-	}
+    private final MetaDataResultTask result;
+
+    @Override
+    protected void initChannel(Channel ch) throws Exception {
+        ch.pipeline()
+                .addLast(new ReadTimeoutHandler(30))
+                .addLast(new MetaDataExchangeHandler(result));
+    }
+}

@@ -1,6 +1,5 @@
 package com.lzh.exchange.logic;
 
-import com.alibaba.fastjson.JSON;
 import com.lzh.exchange.common.entity.Metadata;
 import com.lzh.exchange.common.util.bencode.BencodingUtils;
 import io.netty.buffer.ByteBuf;
@@ -17,111 +16,112 @@ import java.util.function.Supplier;
 @Slf4j
 public class MetaDataResultTask {
 
-	/**
-	 * metadata 元数据的缓冲区
-	 */
-	private ByteBuf result;
+    /**
+     * metadata 元数据的缓冲区
+     */
+    private ByteBuf result;
 
-	/**
-	 * 获取元数据成功回调
-	 */
-	private Consumer<Metadata> successCallBack;
+    /**
+     * 获取元数据成功回调
+     */
+    private Consumer<Metadata> successCallBack;
 
-	/**
-	 * 获取元数据失败回调
-	 */
-	private Consumer<Throwable> failureCallBack;
+    /**
+     * 获取元数据失败回调
+     */
+    private Consumer<Throwable> failureCallBack;
 
-	/**
-	 * 查询任务
-	 */
-	private Supplier<ChannelFuture> future;
+    /**
+     * 查询任务
+     */
+    private Supplier<ChannelFuture> future;
 
-	/**
-	 * 严格模式 开启时,会对peer返回的数据大小做校验 必须和metaDataSize相等
-	 */
-	private boolean strictMode = false;
+    /**
+     * 严格模式 开启时,会对peer返回的数据大小做校验 必须和metaDataSize相等
+     */
+    private boolean strictMode = false;
 
-	private CountDownLatch countDownLatch = new CountDownLatch(1);
-	//TODO :超时后是否直接执行
-
-
-	private MetaDataResultTask() {
-
-	}
-
-	//apis
-
-	/**
-	 *
-	 * @param callBack
-	 * @return
-	 */
-	public MetaDataResultTask success(Consumer<Metadata> callBack){
-		this.successCallBack = callBack;
-		return this;
-	}
+    private CountDownLatch countDownLatch = new CountDownLatch(1);
+    //TODO :超时后是否直接执行
 
 
-	public MetaDataResultTask failure(Consumer<Throwable> callBack){
-		this.failureCallBack = callBack;
-		return this;
-	}
+    private MetaDataResultTask() {
 
-	public void start(){
-		if(successCallBack != null) {
-			future.get();
-		}
-	}
+    }
 
-	//bt-client logic
+    //apis
 
-	protected MetaDataResultTask future(Supplier<ChannelFuture> future){
-		this.future = future;
-		return this;
-	}
+    /**
+     * @param callBack
+     * @return
+     */
+    public MetaDataResultTask success(Consumer<Metadata> callBack) {
+        this.successCallBack = callBack;
+        return this;
+    }
 
 
-	protected static MetaDataResultTask metaDataResult(){
-		MetaDataResultTask metaDataResult = new MetaDataResultTask();
-		return metaDataResult;
-	}
+    public MetaDataResultTask failure(Consumer<Throwable> callBack) {
+        this.failureCallBack = callBack;
+        return this;
+    }
 
-	protected ByteBuf getResult() {
-		return result;
-	}
+    public void start() {
+        if (successCallBack != null) {
+            future.get();
+        }
+    }
 
-	protected void setResult(ByteBuf result) {
-		this.result = result;
-	}
+    //bt-client logic
 
-	protected void doSuccess(){
-		Optional.ofNullable(this.result)
-				.filter(ByteBuf::hasArray)
-				.map(ByteBuf::array)
-				.map(this::bytes2Metadata)
-				.ifPresent(metadata -> successCallBack.accept(metadata));
-	}
+    protected MetaDataResultTask future(Supplier<ChannelFuture> future) {
+        this.future = future;
+        return this;
+    }
 
-	protected void doFailure(Supplier<Throwable> caught){
-		Optional.ofNullable(this.failureCallBack)
-				.ifPresent(cb -> cb.accept(caught.get()));
-	}
 
-	/**
-	 * byte[] 转 {@link Metadata}
-	 */
-	@SuppressWarnings("unchecked")
-	private Metadata bytes2Metadata(byte[] bytes) {
-		try {
-			String metadataStr = new String(bytes, CharsetUtil.UTF_8);
-			metadataStr = metadataStr.substring(metadataStr.indexOf("d"));
-			Map<String, ?> resultMap = BencodingUtils.decode(metadataStr.getBytes(CharsetUtil.UTF_8));
-			log.info("metaData信息 ： {}", JSON.toJSON(resultMap));
-		} catch (Exception e) {
-			log.error("[bytes2Metadata]失败.e:", e.getMessage(), e);
-		}
-		return null;
-	}
+    protected static MetaDataResultTask metaDataResult() {
+        MetaDataResultTask metaDataResult = new MetaDataResultTask();
+        return metaDataResult;
+    }
+
+    protected ByteBuf getResult() {
+        return result;
+    }
+
+    protected void setResult(ByteBuf result) {
+        this.result = result;
+    }
+
+    protected void doSuccess() {
+        Optional.ofNullable(this.result)
+                .filter(ByteBuf::hasArray)
+                .map(ByteBuf::array)
+                .map(this::bytes2Metadata)
+                .ifPresent(metadata -> successCallBack.accept(metadata));
+    }
+
+    protected void doFailure(Supplier<Throwable> caught) {
+        Optional.ofNullable(this.failureCallBack)
+                .ifPresent(cb -> cb.accept(caught.get()));
+    }
+
+    /**
+     * byte[] 转 {@link Metadata}
+     */
+    private Metadata bytes2Metadata(byte[] bytes) {
+        String metadataStr = new String(bytes, CharsetUtil.UTF_8);
+        return Optional.of(metadataStr.indexOf("6:pieces"))
+                .filter(k -> k != -1)
+                .map(endIndex -> {
+                    String s = metadataStr.substring(0, endIndex) + "e";
+                    Map<String, ?> resultMap = BencodingUtils.decode(s.getBytes(CharsetUtil.UTF_8));
+                    if (resultMap != null) {
+                        return new Metadata();
+                    }
+                    return null;
+                })
+                .orElseThrow(() -> new RuntimeException(""));
+    }
 
 }
