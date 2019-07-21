@@ -6,7 +6,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import io.netty.util.CharsetUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Map;
 import java.util.Optional;
@@ -38,8 +37,7 @@ public class MetaDataResultTask {
     private Supplier<ChannelFuture> future;
 
 
-    @Autowired
-    private Bencode bencode;
+    private Bencode bencode = new Bencode(CharsetUtil.UTF_8);
 
     /**
      * 严格模式 开启时,会对peer返回的数据大小做校验 必须和metaDataSize相等

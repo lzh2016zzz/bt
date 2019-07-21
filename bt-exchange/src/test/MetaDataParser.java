@@ -12,7 +12,7 @@ public class MetaDataParser {
     public static void main(String[] args) throws Exception{
         byte[]b = Hex.decodeHex(metadataHex);
         String s = new String(b, CharsetUtil.UTF_8);
-        String s2 = s.substring(0,s.indexOf("6:pieces")) + "e";
+        String s2 = "d13:file-durationli1041ee10:file-mediali0ee6:lengthi611189803e4:name80:sandra_milka_pick_a_dong_busty_bombshell_masturbates_004interviewd1_540_4500.mp412:piece lengthi1048576ee";
         Bencode bencode = new Bencode(CharsetUtil.UTF_8);
         Map map = bencode.decode(s2.getBytes(CharsetUtil.UTF_8),Map.class);
         System.out.println(JSON.toJSONString(map));

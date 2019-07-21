@@ -35,6 +35,7 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
         if (bytes[0] == (byte) 19) {
             //发送扩展消息
             sendExtendMessage(ctx);
+            return;
         }
 
         /**
@@ -46,12 +47,14 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
         String metadataSizeStr = "metadata_size";
         if (messageStr.contains(utMetadataStr) && messageStr.contains(metadataSizeStr)) {
             sendMetadataRequest(ctx, messageStr, utMetadataStr, metadataSizeStr);
+            return;
         }
 
         //如果是分片信息
         if (messageStr.contains("msg_type")) {
 //				log.info("收到分片消息:{}", messageStr);
             fetchMetadataBytes(messageStr, ctx);
+            return;
         }
     }
 
@@ -88,17 +91,19 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
         log.info("该种子metadata大小:{},分块数:{}", metadataSize, blockSum);
         initResult(metadataSize);
         //发送metadata请求
-        Map<String, Object> metadataRequestMap = new LinkedHashMap<>();
-        metadataRequestMap.put("msg_type", 0);
-        metadataRequestMap.put("piece", 0);
-        byte[] metadataRequestMapBytes = BencodingUtils.encode(metadataRequestMap);
-        byte[] metadataRequestBytes = new byte[metadataRequestMapBytes.length + 6];
-        metadataRequestBytes[4] = 20;
-        metadataRequestBytes[5] = (byte) utMetadataValue;
-        byte[] lenBytes = int2Bytes(metadataRequestMapBytes.length + 2);
-        System.arraycopy(lenBytes, 0, metadataRequestBytes, 0, 4);
-        System.arraycopy(metadataRequestMapBytes, 0, metadataRequestBytes, 6, metadataRequestMapBytes.length);
-        ctx.channel().writeAndFlush(Unpooled.copiedBuffer(metadataRequestBytes));
+        for (int i = 0; i < blockSum; i++) {
+            Map<String, Object> metadataRequestMap = new LinkedHashMap<>();
+            metadataRequestMap.put("msg_type", 0);
+            metadataRequestMap.put("piece", i);
+            byte[] metadataRequestMapBytes = BencodingUtils.encode(metadataRequestMap);
+            byte[] metadataRequestBytes = new byte[metadataRequestMapBytes.length + 6];
+            metadataRequestBytes[4] = 20;
+            metadataRequestBytes[5] = (byte) utMetadataValue;
+            byte[] lenBytes = int2Bytes(metadataRequestMapBytes.length + 2);
+            System.arraycopy(lenBytes, 0, metadataRequestBytes, 0, 4);
+            System.arraycopy(metadataRequestMapBytes, 0, metadataRequestBytes, 6, metadataRequestMapBytes.length);
+            ctx.channel().writeAndFlush(Unpooled.copiedBuffer(metadataRequestBytes));
+        }
     }
 
     /**

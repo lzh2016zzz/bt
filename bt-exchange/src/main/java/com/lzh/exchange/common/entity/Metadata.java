@@ -1,18 +1,9 @@
 package com.lzh.exchange.common.entity;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.experimental.Accessors;
 
 
-//@Entity
-@AllArgsConstructor
-@NoArgsConstructor
-@Accessors(chain = true)
 @Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Metadata {
 
 
@@ -34,6 +25,18 @@ public class Metadata {
      */
     
     private String name;
+
+
+    /**
+     * 文件名字. 多个用;分隔
+     */
+    private String fileName;
+
+
+    /**
+     * 后缀名. 多个用;分隔
+     */
+    private String suffixes;
 
     /**
      * 总长度(所有文件相加长度)
