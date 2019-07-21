@@ -115,6 +115,7 @@ public class MetaDataResultTask {
 	private Metadata bytes2Metadata(byte[] bytes) {
 		try {
 			String metadataStr = new String(bytes, CharsetUtil.UTF_8);
+			metadataStr = metadataStr.substring(metadataStr.indexOf("d"));
 			Map<String, ?> resultMap = BencodingUtils.decode(metadataStr.getBytes(CharsetUtil.UTF_8));
 			log.info("metaData信息 ： {}", JSON.toJSON(resultMap));
 		} catch (Exception e) {
@@ -122,4 +123,5 @@ public class MetaDataResultTask {
 		}
 		return null;
 	}
+
 }

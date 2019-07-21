@@ -1,6 +1,7 @@
 package com.lzh.exchange.logic;
 
 import com.lzh.exchange.common.util.bencode.BencodingUtils;
+import com.lzh.exchange.config.Constant;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandler;
@@ -37,7 +38,11 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
             sendExtendMessage(ctx);
         }
 
-        //如果收到的消息中包含ut_metadata,提取出ut_metadata的值
+        /**
+         * 握手成功以后,会返回如下报文 :
+         * {'m': {'ut_metadata', 3}, 'metadata_size': 31235}
+         * msgtype : 0 request 1: data 2 : reject
+         */
         String utMetadataStr = "ut_metadata";
         String metadataSizeStr = "metadata_size";
         if (messageStr.contains(utMetadataStr) && messageStr.contains(metadataSizeStr)) {
@@ -47,16 +52,20 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
         //如果是分片信息
         if (messageStr.contains("msg_type")) {
 //				log.info("收到分片消息:{}", messageStr);
-            fetchMetadataBytes(messageStr);
+            fetchMetadataBytes(messageStr, ctx);
         }
     }
-
 
     /***
      * 获取metadataBytes
      */
-    private void fetchMetadataBytes(String messageStr) {
-
+    private void fetchMetadataBytes(String messageStr, ChannelHandlerContext ctx) {
+        /**
+         * {'msg_type': 1, 'piece': 0, 'total_size': 3425}
+         * d8:msg_typei1e5:piecei0e10:total_sizei34256eexxxxxxxx...
+         *                                            ^ keyword
+         * The x represents binary data (the metadata).
+         */
         String MetaDataResultStr = messageStr.substring(messageStr.indexOf("ee") + 2);
         byte[] metaDataResultStrBytes = MetaDataResultStr.getBytes(CharsetUtil.ISO_8859_1);
         ByteBuf buf;
@@ -66,6 +75,7 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
         //通知task获取metadata成功
         if (buf.array().length >= metadataSize) {
             metaDataResultTask.doSuccess();
+            ctx.close();
         }
     }
 
@@ -81,9 +91,9 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
         //metadata_size值
         metadataSize = Integer.parseInt(otherStr.substring(0, otherStr.indexOf("e")));
         //分块数
-        int blockSum = (int) Math.ceil((double) metadataSize / 5);
+        int blockSum = (int) Math.ceil((double) metadataSize / Constant.METADATA_PIECE_SIZE);
         log.info("该种子metadata大小:{},分块数:{}", metadataSize, blockSum);
-        initResult(metadataSize);
+        initResult(metadataSize, blockSum);
         //发送metadata请求
         for (int i = 0; i < blockSum; i++) {
             Map<String, Object> metadataRequestMap = new LinkedHashMap<>();
@@ -105,8 +115,8 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
      *
      * @param metadataSize
      */
-    private void initResult(int metadataSize) {
-        ByteBuf byteBuf = Unpooled.buffer(metadataSize >> 1, metadataSize);
+    private void initResult(int metadataSize, int blockNum) {
+        ByteBuf byteBuf = Unpooled.buffer(metadataSize);
         metaDataResultTask.setResult(byteBuf);
     }
 
