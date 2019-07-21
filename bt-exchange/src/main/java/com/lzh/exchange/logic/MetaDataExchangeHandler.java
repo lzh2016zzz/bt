@@ -1,6 +1,6 @@
 package com.lzh.exchange.logic;
 
-import com.lzh.exchange.common.util.Bencode;
+import com.lzh.exchange.common.util.bencode.BencodingUtils;
 import com.lzh.exchange.config.Constant;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -9,7 +9,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.CharsetUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -25,9 +24,6 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
 
     private int metadataSize;
 
-    @Autowired
-    private Bencode bencode;
-
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) {
         byte[] bytes = new byte[msg.readableBytes()];
@@ -39,7 +35,6 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
         if (bytes[0] == (byte) 19) {
             //发送扩展消息
             sendExtendMessage(ctx);
-            return;
         }
 
         /**
@@ -51,7 +46,6 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
         String metadataSizeStr = "metadata_size";
         if (messageStr.contains(utMetadataStr) && messageStr.contains(metadataSizeStr)) {
             sendMetadataRequest(ctx, messageStr, utMetadataStr, metadataSizeStr);
-            return;
         }
 
         //如果是分片信息
@@ -82,20 +76,29 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
      * 发送 metadata 请求消息
      */
     private void sendMetadataRequest(ChannelHandlerContext ctx, String messageStr, String utMetadataStr, String metadataSizeStr) {
+        int utMetadataIndex = messageStr.indexOf(utMetadataStr) + utMetadataStr.length() + 1;
         //ut_metadata值
+        int utMetadataValue = Integer.parseInt(messageStr.substring(utMetadataIndex, utMetadataIndex + 1));
         int metadataSizeIndex = messageStr.indexOf(metadataSizeStr) + metadataSizeStr.length() + 1;
         String otherStr = messageStr.substring(metadataSizeIndex);
         //metadata_size值
         metadataSize = Integer.parseInt(otherStr.substring(0, otherStr.indexOf("e")));
         //分块数
         int blockSum = (int) Math.ceil((double) metadataSize / Constant.METADATA_PIECE_SIZE);
-        log.info("metadata size :{},block num:{}", metadataSize, blockSum);
+        log.info("该种子metadata大小:{},分块数:{}", metadataSize, blockSum);
         initResult(metadataSize);
         //发送metadata请求
         Map<String, Object> metadataRequestMap = new LinkedHashMap<>();
         metadataRequestMap.put("msg_type", 0);
         metadataRequestMap.put("piece", 0);
-        sendExtMessage(ctx, metadataRequestMap);
+        byte[] metadataRequestMapBytes = BencodingUtils.encode(metadataRequestMap);
+        byte[] metadataRequestBytes = new byte[metadataRequestMapBytes.length + 6];
+        metadataRequestBytes[4] = 20;
+        metadataRequestBytes[5] = (byte) utMetadataValue;
+        byte[] lenBytes = int2Bytes(metadataRequestMapBytes.length + 2);
+        System.arraycopy(lenBytes, 0, metadataRequestBytes, 0, 4);
+        System.arraycopy(metadataRequestMapBytes, 0, metadataRequestBytes, 6, metadataRequestMapBytes.length);
+        ctx.channel().writeAndFlush(Unpooled.copiedBuffer(metadataRequestBytes));
     }
 
     /**
@@ -104,7 +107,7 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
      * @param metadataSize
      */
     private void initResult(int metadataSize) {
-        ByteBuf byteBuf = Unpooled.buffer(metadataSize);
+        ByteBuf byteBuf = Unpooled.buffer(Math.toIntExact(metadataSize < Constant.METADATA_PIECE_SIZE ? metadataSize : Constant.METADATA_PIECE_SIZE));
         metaDataResultTask.setResult(byteBuf);
     }
 
@@ -119,11 +122,7 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
         Map<String, Object> extendMessageMMap = new LinkedHashMap<>();
         extendMessageMMap.put("ut_metadata", 1);
         extendMessageMap.put("m", extendMessageMMap);
-        sendExtMessage(ctx, extendMessageMap);
-    }
-
-    private void sendExtMessage(ChannelHandlerContext ctx, Map<String, Object> extendMessageMap) {
-        byte[] tempExtendBytes = bencode.encode(extendMessageMap);
+        byte[] tempExtendBytes = BencodingUtils.encode(extendMessageMap);
         byte[] extendMessageBytes = new byte[tempExtendBytes.length + 6];
         extendMessageBytes[4] = 20;
         extendMessageBytes[5] = 0;
@@ -131,6 +130,9 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
         System.arraycopy(lenBytes, 0, extendMessageBytes, 0, 4);
         System.arraycopy(tempExtendBytes, 0, extendMessageBytes, 6, tempExtendBytes.length);
         ctx.channel().writeAndFlush(Unpooled.copiedBuffer(extendMessageBytes));
+    }
+
+    private void sendExtMessage(ChannelHandlerContext ctx, Map<String, Object> extendMessageMap) {
     }
 
     @Override
