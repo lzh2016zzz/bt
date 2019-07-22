@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 /***
  * bep9 & bep 10
@@ -87,20 +88,25 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
         int blockSum = (int) Math.ceil((double) metadataSize / Constant.METADATA_PIECE_SIZE);
         log.info("metadataSize:{},block num:{}", metadataSize, blockSum);
         initResult((int) Constant.METADATA_PIECE_SIZE);
-        //发送metadata请求
-        for (int i = 0; i < blockSum; i++) {
+        //
+
+        IntStream.range(0, blockSum).forEach(index -> {
             Map<String, Object> metadataRequestMap = new LinkedHashMap<>();
             metadataRequestMap.put("msg_type", 0);
-            metadataRequestMap.put("piece", i);
-            byte[] metadataRequestMapBytes = BencodingUtils.encode(metadataRequestMap);
-            byte[] metadataRequestBytes = new byte[metadataRequestMapBytes.length + 6];
-            metadataRequestBytes[4] = 20;
-            metadataRequestBytes[5] = (byte) utMetadataValue;
-            byte[] lenBytes = int2Bytes(metadataRequestMapBytes.length + 2);
-            System.arraycopy(lenBytes, 0, metadataRequestBytes, 0, 4);
-            System.arraycopy(metadataRequestMapBytes, 0, metadataRequestBytes, 6, metadataRequestMapBytes.length);
-            ctx.channel().writeAndFlush(Unpooled.copiedBuffer(metadataRequestBytes));
-        }
+            metadataRequestMap.put("piece", index);
+            sendExtMessage(ctx, (byte) utMetadataValue, metadataRequestMap);
+        });
+    }
+
+    private void sendExtMessage(ChannelHandlerContext ctx, byte utMetadataValue, Map<String, Object> metadataRequestMap) {
+        byte[] metadataRequestMapBytes = BencodingUtils.encode(metadataRequestMap);
+        byte[] metadataRequestBytes = new byte[metadataRequestMapBytes.length + 6];
+        metadataRequestBytes[4] = 20;
+        metadataRequestBytes[5] = utMetadataValue;
+        byte[] lenBytes = int2Bytes(metadataRequestMapBytes.length + 2);
+        System.arraycopy(lenBytes, 0, metadataRequestBytes, 0, 4);
+        System.arraycopy(metadataRequestMapBytes, 0, metadataRequestBytes, 6, metadataRequestMapBytes.length);
+        ctx.channel().writeAndFlush(Unpooled.copiedBuffer(metadataRequestBytes));
     }
 
     /**
@@ -124,14 +130,7 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
         Map<String, Object> extendMessageMMap = new LinkedHashMap<>();
         extendMessageMMap.put("ut_metadata", 1);
         extendMessageMap.put("m", extendMessageMMap);
-        byte[] tempExtendBytes = BencodingUtils.encode(extendMessageMap);
-        byte[] extendMessageBytes = new byte[tempExtendBytes.length + 6];
-        extendMessageBytes[4] = 20;
-        extendMessageBytes[5] = 0;
-        byte[] lenBytes = int2Bytes(tempExtendBytes.length + 2);
-        System.arraycopy(lenBytes, 0, extendMessageBytes, 0, 4);
-        System.arraycopy(tempExtendBytes, 0, extendMessageBytes, 6, tempExtendBytes.length);
-        ctx.channel().writeAndFlush(Unpooled.copiedBuffer(extendMessageBytes));
+        sendExtMessage(ctx, (byte) 0, extendMessageMMap);
     }
 
     @Override
