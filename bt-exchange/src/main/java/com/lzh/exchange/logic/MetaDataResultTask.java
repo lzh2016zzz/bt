@@ -161,7 +161,7 @@ public class MetaDataResultTask {
 
     private String getSuffix(String name) {
         int index = name.lastIndexOf(".");
-        return index == -1 ? null : name.substring(index + 1);
+        return index == -1 ? null : name.substring(index + 1).toLowerCase();
     }
 
 }
