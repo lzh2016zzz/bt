@@ -125,7 +125,7 @@ public class MetaDataResultTask {
                                     .map(files -> ((ArrayList<String>) files.get("path")))
                                     .filter(Objects::nonNull)
                                     .flatMap(Collection::stream)
-                                    .map(str -> getSuffix(str))
+                                    .map(this::getSuffix)
                                     .filter(Objects::nonNull)
                                     .distinct().collect(Collectors.joining(","));
 
@@ -161,7 +161,8 @@ public class MetaDataResultTask {
 
     private String getSuffix(String name) {
         int index = name.lastIndexOf(".");
-        return index == -1 ? null : name.substring(index + 1).toLowerCase();
+        return (index == -1 || (index + 1 > name.length() - 1)) ? null : name.substring(index + 1).toLowerCase();
     }
+
 
 }
