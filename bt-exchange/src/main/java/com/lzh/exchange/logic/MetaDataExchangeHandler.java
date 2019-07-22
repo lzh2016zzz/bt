@@ -35,7 +35,6 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
         if (bytes[0] == (byte) 19) {
             //发送扩展消息
             sendExtendMessage(ctx);
-            return;
         }
 
         /**
@@ -47,14 +46,12 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
         String metadataSizeStr = "metadata_size";
         if (messageStr.contains(utMetadataStr) && messageStr.contains(metadataSizeStr)) {
             sendMetadataRequest(ctx, messageStr, utMetadataStr, metadataSizeStr);
-            return;
         }
 
         //如果是分片信息
         if (messageStr.contains("msg_type")) {
 //				log.info("收到分片消息:{}", messageStr);
             fetchMetadataBytes(messageStr, ctx);
-            return;
         }
     }
 
@@ -88,8 +85,8 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
         metadataSize = Integer.parseInt(otherStr.substring(0, otherStr.indexOf("e")));
         //分块数
         int blockSum = (int) Math.ceil((double) metadataSize / Constant.METADATA_PIECE_SIZE);
-        log.info("该种子metadata大小:{},分块数:{}", metadataSize, blockSum);
-        initResult(metadataSize);
+        log.info("metadataSize:{},block num:{}", metadataSize, blockSum);
+        initResult((int) Constant.METADATA_PIECE_SIZE);
         //发送metadata请求
         for (int i = 0; i < blockSum; i++) {
             Map<String, Object> metadataRequestMap = new LinkedHashMap<>();
@@ -112,7 +109,7 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
      * @param metadataSize
      */
     private void initResult(int metadataSize) {
-        ByteBuf byteBuf = Unpooled.buffer(Math.toIntExact(metadataSize < Constant.METADATA_PIECE_SIZE ? metadataSize : Constant.METADATA_PIECE_SIZE));
+        ByteBuf byteBuf = Unpooled.buffer(metadataSize);
         metaDataResultTask.setResult(byteBuf);
     }
 
@@ -135,9 +132,6 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
         System.arraycopy(lenBytes, 0, extendMessageBytes, 0, 4);
         System.arraycopy(tempExtendBytes, 0, extendMessageBytes, 6, tempExtendBytes.length);
         ctx.channel().writeAndFlush(Unpooled.copiedBuffer(extendMessageBytes));
-    }
-
-    private void sendExtMessage(ChannelHandlerContext ctx, Map<String, Object> extendMessageMap) {
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.lzh.exchange.logic;
 
+import com.alibaba.fastjson.JSON;
 import com.lzh.exchange.common.entity.Metadata;
 import com.lzh.exchange.common.util.Bencode;
 import io.netty.buffer.ByteBuf;
@@ -7,45 +8,34 @@ import io.netty.channel.ChannelFuture;
 import io.netty.util.CharsetUtil;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class MetaDataResultTask {
 
     /**
-     * metadata 元数据的缓冲区
+     * decoder
+     */
+    private static Bencode bencode = new Bencode(CharsetUtil.UTF_8);
+    /**
+     * metadata buffer
      */
     private ByteBuf result;
-
     /**
-     * 获取元数据成功回调
+     * get metadata success callback
      */
     private Consumer<Metadata> successCallBack;
-
     /**
-     * 获取元数据失败回调
+     * get metadata failure callback
      */
     private Consumer<Throwable> failureCallBack;
-
     /**
-     * 查询任务
+     * query task
      */
     private Supplier<ChannelFuture> future;
-
-
-    private Bencode bencode = new Bencode(CharsetUtil.UTF_8);
-
-    /**
-     * 严格模式 开启时,会对peer返回的数据大小做校验 必须和metaDataSize相等
-     */
-    private boolean strictMode = false;
-
-    private CountDownLatch countDownLatch = new CountDownLatch(1);
-    //TODO :超时后是否直接执行
 
 
     private MetaDataResultTask() {
@@ -110,7 +100,7 @@ public class MetaDataResultTask {
     }
 
     /**
-     * byte[] 转 {@link Metadata}
+     * byte[] to {@link Metadata}
      */
     @SuppressWarnings("unchecked")
     private Metadata bytes2Metadata(byte[] bytes) {
@@ -118,14 +108,60 @@ public class MetaDataResultTask {
         return Optional.of(metadataStr.indexOf("6:pieces"))
                 .filter(k -> k != -1)
                 .map(endIndex -> {
+                    //metadata is dict type
                     String s = metadataStr.substring(0, endIndex) + "e";
-                    Map<String, ?> resultMap = bencode.decode(s.getBytes(CharsetUtil.UTF_8),Map.class);
+                    Map<String, ?> resultMap = bencode.decode(s.getBytes(CharsetUtil.UTF_8), Map.class);
                     if (resultMap != null) {
-                        return new Metadata();
+                        /**
+                         * multi-file
+                         */
+                        if (resultMap.get("files") != null) {
+
+                            List<Map<String, Object>> fileList = (List<Map<String, Object>>) resultMap.get("files");
+
+                            String name = (String) resultMap.get("name");
+
+                            String joinSuffixes = fileList.stream()
+                                    .map(files -> ((ArrayList<String>) files.get("path")))
+                                    .filter(Objects::nonNull)
+                                    .flatMap(Collection::stream)
+                                    .map(str -> getSuffix(str))
+                                    .filter(Objects::nonNull)
+                                    .distinct().collect(Collectors.joining(","));
+
+                            long totalLength = fileList.stream()
+                                    .map(files -> (long) files.get("length"))
+                                    .reduce(0L, Long::sum);
+
+                            return Metadata.builder()
+                                    .name(name)
+                                    .suffixes(joinSuffixes)
+                                    .multiFile(JSON.toJSONString(fileList))
+                                    .length(totalLength)
+                                    .single(false)
+                                    .build();
+                        } else {
+                            /**
+                             * single-file
+                             */
+                            String name = (String) resultMap.get("name");
+                            Long length = (Long) resultMap.get("length");
+                            return Metadata.builder()
+                                    .name(name)
+                                    .suffixes(getSuffix(name))
+                                    .length(length)
+                                    .single(true)
+                                    .build();
+                        }
                     }
                     return null;
                 })
                 .orElseThrow(() -> new RuntimeException(""));
+    }
+
+    private String getSuffix(String name) {
+        int index = name.lastIndexOf(".");
+        return index == -1 ? null : name.substring(index + 1);
     }
 
 }

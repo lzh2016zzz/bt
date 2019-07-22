@@ -1,7 +1,6 @@
 package com.lzh.dhtserver.logic;
 
 
-import com.lzh.dhtserver.common.util.NodeIdUtil;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.socket.DatagramPacket;
@@ -52,10 +51,10 @@ public class DHTServer {
      */
     @PostConstruct
     public void start() throws Exception {
-        log.info("启动dht-server,udpPort :{}  ", udpPort);
+        log.info("starting dht server,udpPort :{}  ", udpPort);
         serverChannelFuture = b.bind(udpPort).sync();
         serverChannelFuture.channel().closeFuture();
-        log.info("启动dht-server成功.");
+        log.info("starting dht server success");
     }
 
     /**

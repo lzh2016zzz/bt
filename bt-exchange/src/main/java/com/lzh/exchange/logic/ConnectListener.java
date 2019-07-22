@@ -29,7 +29,7 @@ public class ConnectListener implements ChannelFutureListener {
             log.info("connecting to node [{}:{} successful，send handshake message", ip, port);
             sendHandshakeMessage(future);
         } else {
-            task.doFailure(() -> new SocketException("connecting to node failure"));
+            task.doFailure(() -> new SocketException("connecting to node[" + ip + " : " + port + "] failure"));
             future.channel().close();
         }
     }

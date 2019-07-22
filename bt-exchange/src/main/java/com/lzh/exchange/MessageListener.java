@@ -1,5 +1,6 @@
 package com.lzh.exchange;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.lzh.exchange.logic.ExchangeClient;
@@ -38,14 +39,12 @@ public class MessageListener {
                     if (!StringUtils.isEmpty(ip = msg.getString("ip")) &&
                             !StringUtils.isEmpty(port = msg.getInteger("port"))) {
 
-                        //创建任务
+                        //create task
                         log.info("add task: {},{}", infoHash, ip + ":" + port);
 
                         client.createTask(Base64Utils.decodeFromString(infoHash), ip , port)
-                                .success((meta) -> {
-                                    //成功回调
-                                })
-                                .failure((err) -> log.error("任务失败，原因： " + err.getMessage()))
+                                .success((meta) -> log.info("metadata :" + JSON.toJSONString(meta)))
+                                .failure((err) -> log.error("task failure,reason ： " + err.getMessage()))
                                 .start();
                     }
                 } else {

@@ -1,61 +1,72 @@
 package com.lzh.exchange.common.entity;
 
+import lombok.Builder;
 import lombok.Data;
 
 
 @Data
+@Builder
 public class Metadata {
 
 
-
     /**
-     * infoHash信息,16进制形式
+     * info-hash hexadecimal
      */
-    
+
     private String infoHash;
 
 
     /**
-     * 是否单文件
+     * is the metadata only one file
      */
     private boolean single;
 
     /**
-     * 名字
+     * metadata name
      */
-    
     private String name;
 
-
     /**
-     * 文件名字. 多个用;分隔
+     * multi files info.
+     * <br/>
+     * example : <br/>[
+     * {
+     * "length": 693195,
+     * "path": [
+     * "3-13-2012 5-23-31 PM.jpg"
+     * ]
+     * },
+     * {
+     * "length": 676387,
+     * "path": [
+     * "3-3-2012 4-32-48 PM.jpg"
+     * ]
+     * }]
      */
-    private String fileName;
+    private String multiFile;
 
 
     /**
-     * 后缀名. 多个用;分隔
+     * suffixes
+     * <br/>
+     * use ','separate
+     * <br/>
+     * example : jpg,png,flac,mp4
      */
     private String suffixes;
 
     /**
-     * 总长度(所有文件相加长度)
+     * files total length
      */
-    
+
     private Long length;
 
 
     /**
-     * 热度
+     * hot
      */
-    
-    private Long hot = 0L;
+    private Long hot;
 
-
-    /**
-     * 种子类型
-     */
-    private Integer type;
 
 
 }
