@@ -31,15 +31,15 @@ public class ExchangeClient {
      * 发送数据
      */
     public MetaDataResultTask createTask(byte[] infoHash, String ip, int port) {
-        final MetaDataResultTask result = MetaDataResultTask.metaDataResult();
+        final MetaDataResultTask result = MetaDataResultTask.metaDataResult().infoHash(infoHash);
         result.future(() -> queryTask(infoHash, ip, port, result));
         return result;
     }
 
-    private ChannelFuture queryTask(byte[] infoHashHexStr, String ip, int port, MetaDataResultTask task) {
-        return bootstrapFactory.build().handler(new CustomChannelInitializer(infoHashHexStr, task))
+    private ChannelFuture queryTask(byte[] infoHash, String ip, int port, MetaDataResultTask task) {
+        return bootstrapFactory.build().handler(new CustomChannelInitializer(infoHash, task))
                 .connect(new InetSocketAddress(ip, port))
-                .addListener(new ConnectListener(infoHashHexStr, peerId, ip, port, task));
+                .addListener(new ConnectListener(infoHash, peerId, ip, port, task));
     }
 
 }

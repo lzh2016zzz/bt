@@ -7,6 +7,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import io.netty.util.CharsetUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.binary.Hex;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -36,6 +37,11 @@ public class MetaDataResultTask {
      * query task
      */
     private Supplier<ChannelFuture> future;
+
+    /**
+     * meta infoHash
+     */
+    private volatile byte[] infoHash;
 
 
     private MetaDataResultTask() {
@@ -69,6 +75,13 @@ public class MetaDataResultTask {
 
     protected MetaDataResultTask future(Supplier<ChannelFuture> future) {
         this.future = future;
+        return this;
+    }
+
+    //bt-client logic
+
+    protected MetaDataResultTask infoHash(byte[] infoHash) {
+        this.infoHash = infoHash;
         return this;
     }
 
@@ -139,6 +152,7 @@ public class MetaDataResultTask {
                                     .multiFile(JSON.toJSONString(fileList))
                                     .length(totalLength)
                                     .single(false)
+                                    .infoHash(Hex.encodeHexString(this.infoHash))
                                     .build();
                         } else {
                             /**
@@ -151,6 +165,7 @@ public class MetaDataResultTask {
                                     .suffixes(getSuffix(name))
                                     .length(length)
                                     .single(true)
+                                    .infoHash(Hex.encodeHexString(this.infoHash))
                                     .build();
                         }
                     }

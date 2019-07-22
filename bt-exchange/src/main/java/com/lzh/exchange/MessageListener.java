@@ -40,7 +40,7 @@ public class MessageListener {
                             !StringUtils.isEmpty(port = msg.getInteger("port"))) {
 
                         //create task
-                        log.info("add task: {},{}", infoHash, ip + ":" + port);
+                        //log.info("add task: {},{}", infoHash, ip + ":" + port);
 
                         client.createTask(Base64Utils.decodeFromString(infoHash), ip , port)
                                 .success((meta) -> log.info("metadata :" + JSON.toJSONString(meta)))
