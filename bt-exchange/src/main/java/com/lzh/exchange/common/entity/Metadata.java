@@ -3,6 +3,8 @@ package com.lzh.exchange.common.entity;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.ZonedDateTime;
+
 
 @Data
 @Builder
@@ -66,6 +68,11 @@ public class Metadata {
      * hot
      */
     private Long hot;
+
+    /**
+     * createTime
+     */
+    private ZonedDateTime create = ZonedDateTime.now();
 
 
 

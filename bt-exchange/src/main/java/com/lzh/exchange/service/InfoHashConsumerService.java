@@ -1,6 +1,5 @@
 package com.lzh.exchange.service;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.lzh.exchange.logic.ExchangeClient;
@@ -43,7 +42,7 @@ public class InfoHashConsumerService {
                             !StringUtils.isEmpty(port = msg.getInteger("port"))) {
 
                         client.createTask(Base64Utils.decodeFromString(infoHash), ip, port)
-                                .success((meta) -> log.info("metadata :" + JSON.toJSONString(meta)))
+                                .success((meta) -> metadataService.pushMetaData(meta))
                                 .failure((err) -> log.error("queryTask failure,reason ： " + err.getMessage()))
                                 .start();
                     }

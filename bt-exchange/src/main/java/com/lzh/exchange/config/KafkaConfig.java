@@ -55,13 +55,13 @@ public class KafkaConfig {
     @Bean
     public Map<String, Object> consumerConfigs() {
         Map<String, Object> map = new HashMap<>();
-        map.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG,false);
+        map.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG,true);
         map.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG,10);
         map.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG,60000);
         map.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         map.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         map.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, host + ":" + port);
-        map.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, 100);
+        map.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, 1000);
         map.put(ConsumerConfig.GROUP_ID_CONFIG,groupId);
         return map;
     }
