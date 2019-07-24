@@ -13,7 +13,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 
-import javax.annotation.PostConstruct;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -87,12 +86,11 @@ public class DHTServerContext {
     }
 
     /**
-     * 随 SpringBoot 启动 DHT 服务器
+     * 启动 DHT 服务器
      *
      * @throws Exception
      */
-    @PostConstruct
-    public void start() throws Exception {
+    public void startServer() throws InterruptedException {
         log.info("starting dht server,udpPort :{}  ", udpPort);
         serverChannelFuture = severBootstrap.bind(udpPort).sync();
         serverChannelFuture.channel().closeFuture();

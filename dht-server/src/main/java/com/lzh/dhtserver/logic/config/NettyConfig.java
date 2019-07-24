@@ -70,6 +70,11 @@ public class NettyConfig implements ApplicationListener<ContextClosedEvent> {
                 ChannelOption option : keySet) {
             bootstrap.option(option, tcpChannelOptions.get(option));
         }
+        try {
+            context.startServer();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         return bootstrap;
     }
 
@@ -77,7 +82,7 @@ public class NettyConfig implements ApplicationListener<ContextClosedEvent> {
 //    @PostConstruct
 //    public void init() {
 //        dhtServerContexts.forEach(context -> context.);
-//        findNodeTask.start();
+//        findNodeTask.startServer();
 //    }
 //
 //    @PreDestroy
