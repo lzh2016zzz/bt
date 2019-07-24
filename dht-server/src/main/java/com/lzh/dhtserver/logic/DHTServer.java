@@ -1,6 +1,7 @@
 package com.lzh.dhtserver.logic;
 
 
+import com.lzh.dhtserver.logic.entity.UniqueBlockingQueue;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.socket.DatagramPacket;
@@ -34,6 +35,11 @@ public class DHTServer {
 
     private ChannelFuture serverChannelFuture;
 
+    private final UniqueBlockingQueue nodesQueue = new UniqueBlockingQueue();
+    @Autowired
+    @Qualifier("selfNodeId")
+    private byte[] selfNodeId;
+
 
     /**
      * 启动节点列表
@@ -64,5 +70,16 @@ public class DHTServer {
      */
     public void sendKRPC(DatagramPacket packet) {
         serverChannelFuture.channel().writeAndFlush(packet);
+    }
+
+    public UniqueBlockingQueue getNodesQueue() {
+        return nodesQueue;
+    }
+
+    public byte[] getSelfNodeId() {
+        if (this.selfNodeId == null) {
+            return null;
+        }
+        return Arrays.copyOf(this.selfNodeId, selfNodeId.length);
     }
 }

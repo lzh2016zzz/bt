@@ -8,8 +8,6 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class CustomChannelInitializer extends ChannelInitializer {
 
-    private final byte[] infoHash;
-
     private final MetaDataResultTask result;
 
     @Override

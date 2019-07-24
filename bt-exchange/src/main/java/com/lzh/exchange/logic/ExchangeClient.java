@@ -37,7 +37,7 @@ public class ExchangeClient {
     }
 
     private ChannelFuture queryTask(byte[] infoHash, String ip, int port, MetaDataResultTask task) {
-        return bootstrapFactory.build().handler(new CustomChannelInitializer(infoHash, task))
+        return bootstrapFactory.build().handler(new CustomChannelInitializer(task))
                 .connect(new InetSocketAddress(ip, port))
                 .addListener(new ConnectListener(infoHash, peerId, ip, port, task));
     }

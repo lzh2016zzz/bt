@@ -1,4 +1,4 @@
-package com.lzh.dhtserver.logic.config;
+package com.lzh.dhtserver.logic;
 
 import com.lzh.dhtserver.logic.handler.DHTServerHandler;
 import io.netty.channel.ChannelInitializer;

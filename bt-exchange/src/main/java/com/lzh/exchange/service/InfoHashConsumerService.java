@@ -42,9 +42,6 @@ public class InfoHashConsumerService {
                     if (!StringUtils.isEmpty(ip = msg.getString("ip")) &&
                             !StringUtils.isEmpty(port = msg.getInteger("port"))) {
 
-                        //create task
-                        //log.info("add task: {},{}", infoHash, ip + ":" + port);
-
                         client.createTask(Base64Utils.decodeFromString(infoHash), ip, port)
                                 .success((meta) -> log.info("metadata :" + JSON.toJSONString(meta)))
                                 .failure((err) -> log.error("task failure,reason ： " + err.getMessage()))

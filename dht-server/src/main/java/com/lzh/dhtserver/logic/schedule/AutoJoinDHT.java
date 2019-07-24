@@ -1,5 +1,6 @@
 package com.lzh.dhtserver.logic.schedule;
 
+import com.lzh.dhtserver.logic.DHTServer;
 import com.lzh.dhtserver.logic.handler.DHTServerHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,14 +15,17 @@ import org.springframework.stereotype.Component;
 @Component
 public class AutoJoinDHT {
 
-	@Autowired
-	private DHTServerHandler handler;
+    @Autowired
+    private DHTServerHandler handler;
 
-	@Scheduled(fixedDelay = 30 * 1000, initialDelay = 10 * 1000)
-	public void doJob() {
-		if (handler.NODES_QUEUE.isEmpty()) {
+    @Autowired
+    private DHTServer dhtServer;
+
+    @Scheduled(fixedDelay = 30 * 1000, initialDelay = 10 * 1000)
+    public void doJob() {
+        if (dhtServer.getNodesQueue().isEmpty()) {
             log.info("local dht nodes is empty,rejoin dht internet..");
-			handler.joinDHT();
-		}
-	}
+            handler.joinDHT();
+        }
+    }
 }
