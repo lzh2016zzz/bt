@@ -4,15 +4,11 @@ import com.lzh.dhtserver.logic.handler.DHTServerHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.DatagramChannel;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
+import lombok.AllArgsConstructor;
 
-@Component
-@Qualifier("channelInitializer")
+@AllArgsConstructor
 public class DHTChannelInitializer extends ChannelInitializer<DatagramChannel> {
 
-	@Autowired
 	private DHTServerHandler dhtServerHandler;
 
 	@Override

@@ -1,9 +1,10 @@
 package com.lzh.dhtserver.logic.config;
 
 import com.lzh.dhtserver.common.util.NodeIdUtil;
+import com.lzh.dhtserver.logic.DHTChannelInitializer;
+import com.lzh.dhtserver.logic.handler.DHTServerHandler;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -12,9 +13,6 @@ import io.netty.util.CharsetUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
-import org.apache.http.util.CharsetUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.ApplicationListener;
@@ -28,7 +26,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Stream;
 
 /***
  * Netty 服务器配置
@@ -51,17 +48,14 @@ public class NettyConfig implements ApplicationListener<ContextClosedEvent> {
     private EventLoopGroup group;
 
 
-    @Autowired
-    @Qualifier("channelInitializer")
-    private ChannelInitializer channelInitializer;
 
     @Bean(name = "serverBootstrap")
-    public Bootstrap bootstrap() {
+    public Bootstrap bootstrap(DHTServerHandler handler) {
         group = group();
         Bootstrap b = new Bootstrap();
         b.group(group)
                 .channel(NioDatagramChannel.class)
-                .handler(channelInitializer);
+                .handler(new DHTChannelInitializer(handler));
         Map<ChannelOption<?>, Object> tcpChannelOptions = udpChannelOptions();
         Set<ChannelOption<?>> keySet = tcpChannelOptions.keySet();
         for (@SuppressWarnings("rawtypes")
