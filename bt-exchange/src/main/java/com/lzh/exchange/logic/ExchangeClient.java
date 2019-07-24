@@ -32,7 +32,7 @@ public class ExchangeClient {
      */
     public MetaDataResultTask createTask(byte[] infoHash, String ip, int port) {
         final MetaDataResultTask result = MetaDataResultTask.metaDataResult().infoHash(infoHash);
-        result.future(() -> queryTask(infoHash, ip, port, result));
+        result.queryTask(() -> queryTask(infoHash, ip, port, result));
         return result;
     }
 

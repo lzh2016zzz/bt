@@ -34,7 +34,7 @@ public class MetaDataResultTask {
      */
     private Consumer<Throwable> failureCallBack;
     /**
-     * query task
+     * query queryTask
      */
     private Supplier<ChannelFuture> future;
 
@@ -71,14 +71,13 @@ public class MetaDataResultTask {
         }
     }
 
-    //bt-client logic
+    //metadata-client logic
 
-    protected MetaDataResultTask future(Supplier<ChannelFuture> future) {
+    protected MetaDataResultTask queryTask(Supplier<ChannelFuture> future) {
         this.future = future;
         return this;
     }
 
-    //bt-client logic
 
     protected MetaDataResultTask infoHash(byte[] infoHash) {
         this.infoHash = infoHash;

@@ -20,7 +20,7 @@ public class ConnectListener implements ChannelFutureListener {
     private String ip;
     //端口号
     private int port;
-    //task
+    //queryTask
     private MetaDataResultTask task;
 
     @Override

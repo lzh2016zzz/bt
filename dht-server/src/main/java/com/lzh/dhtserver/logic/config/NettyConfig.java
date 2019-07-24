@@ -2,7 +2,8 @@ package com.lzh.dhtserver.logic.config;
 
 import com.lzh.dhtserver.common.util.NodeIdUtil;
 import com.lzh.dhtserver.logic.DHTChannelInitializer;
-import com.lzh.dhtserver.logic.handler.DHTServerHandler;
+import com.lzh.dhtserver.logic.DHTServerContext;
+import com.lzh.dhtserver.logic.DHTServerHandler;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
@@ -10,6 +11,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.util.CharsetUtil;
+import io.netty.util.concurrent.EventExecutorGroup;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
@@ -19,6 +21,8 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.ContextClosedEvent;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.kafka.core.KafkaTemplate;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -26,6 +30,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /***
  * Netty 服务器配置
@@ -38,35 +43,53 @@ public class NettyConfig implements ApplicationListener<ContextClosedEvent> {
 
     @Value("${logic.udp.port}")
     private int udpPort;
+
     @Value("${logic.so.backlog}")
     private int backlog;
+
     @Value("${logic.so.rcvbuf}")
     private int rcvbuf;
+
     @Value("${logic.so.sndbuf}")
     private int sndbuf;
 
-    private EventLoopGroup group;
+    private List<EventLoopGroup> groups = new CopyOnWriteArrayList<>();
 
+    private List<DHTServerContext> dhtServerContexts = new CopyOnWriteArrayList<>();
 
 
     @Bean(name = "serverBootstrap")
-    public Bootstrap bootstrap(DHTServerHandler handler) {
-        group = group();
-        Bootstrap b = new Bootstrap();
-        b.group(group)
-                .channel(NioDatagramChannel.class)
-                .handler(new DHTChannelInitializer(handler));
+    public Bootstrap bootstrap(InetSocketAddress udpPort, byte[] selfNodeId, RedisTemplate redisTemplate, KafkaTemplate<String, String> kafkaTemplate) {
+        EventLoopGroup group = createEventLoopGroup();
+        Bootstrap bootstrap = new Bootstrap();
+        DHTServerContext context = new DHTServerContext(redisTemplate, kafkaTemplate, bootstrap, udpPort, selfNodeId, new DHTServerHandler());
+        bootstrap.group(group).channel(NioDatagramChannel.class).handler(new DHTChannelInitializer(context));
+        groups.add(group);
+        dhtServerContexts.add(context);
         Map<ChannelOption<?>, Object> tcpChannelOptions = udpChannelOptions();
         Set<ChannelOption<?>> keySet = tcpChannelOptions.keySet();
         for (@SuppressWarnings("rawtypes")
                 ChannelOption option : keySet) {
-            b.option(option, tcpChannelOptions.get(option));
+            bootstrap.option(option, tcpChannelOptions.get(option));
         }
-        return b;
+        return bootstrap;
     }
 
+//
+//    @PostConstruct
+//    public void init() {
+//        dhtServerContexts.forEach(context -> context.);
+//        findNodeTask.start();
+//    }
+//
+//    @PreDestroy
+//    public void stop() {
+//        findNodeTask.interrupt();
+//    }
+
+
     @Bean(name = "group")
-    public EventLoopGroup group() {
+    public EventLoopGroup createEventLoopGroup() {
         return new NioEventLoopGroup();
     }
 
@@ -88,7 +111,7 @@ public class NettyConfig implements ApplicationListener<ContextClosedEvent> {
     @Override
     public void onApplicationEvent(ContextClosedEvent contextClosedEvent) {
         if (contextClosedEvent.getApplicationContext().getParent() == null) {
-            group.shutdownGracefully();
+            groups.stream().forEach(EventExecutorGroup::shutdownGracefully);
         }
     }
 
@@ -100,14 +123,14 @@ public class NettyConfig implements ApplicationListener<ContextClosedEvent> {
             Optional<String> stringStream = Files.lines(path, CharsetUtil.UTF_8)
                     .flatMap(line -> Arrays.stream(line.split(" "))).findFirst();
             if (stringStream.isPresent()) {
-                log.info("self-node-Id : {}",stringStream.get().trim());
+                log.info("self-node-Id : {}", stringStream.get().trim());
                 return Hex.decodeHex(stringStream.get());
             }
         } else {
             Files.createFile(path);
             byte[] b = NodeIdUtil.createRandomNodeId();
             String nodeIdHex = Hex.encodeHexString(b);
-            log.info("self-node-Id : {}",nodeIdHex);
+            log.info("self-node-Id : {}", nodeIdHex);
             Files.write(path, nodeIdHex.getBytes(CharsetUtil.UTF_8));
             return b;
         }
