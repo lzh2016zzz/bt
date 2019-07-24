@@ -80,7 +80,9 @@ public class MetaDataResultTask {
 
 
     protected MetaDataResultTask infoHash(byte[] infoHash) {
-        this.infoHash = infoHash;
+        if (infoHash != null) {
+            this.infoHash = Arrays.copyOf(infoHash, infoHash.length);
+        }
         return this;
     }
 
