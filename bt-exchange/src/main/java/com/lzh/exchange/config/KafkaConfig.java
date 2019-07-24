@@ -1,5 +1,6 @@
 package com.lzh.exchange.config;
 
+import io.netty.util.NettyRuntime;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -40,7 +41,7 @@ public class KafkaConfig {
         log.info("initialize kafka consumer");
         ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
-        factory.setConcurrency(2);
+        factory.setConcurrency(NettyRuntime.availableProcessors() + 5);
         factory.setBatchListener(true);
         factory.getContainerProperties().setPollTimeout(3000);
         return factory;
