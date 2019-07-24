@@ -44,11 +44,6 @@ public class DHTServerContext {
 
     private final UniqueBlockingQueue nodesQueue = new UniqueBlockingQueue();
 
-    /**
-     * 查询 DHT 节点线程，用于持续获取新的 DHT 节点
-     **/
-    private FindNodeTask findNodeTask = new FindNodeTask(this);
-
 
     /**
      * 启动节点列表
@@ -116,12 +111,22 @@ public class DHTServerContext {
         return kafkaTemplate;
     }
 
+    //TODO :: FIX join dht task
     @Scheduled(fixedDelay = 30 * 1000, initialDelay = 10 * 1000)
     public void doJob() {
         if (this.getNodesQueue().isEmpty()) {
             log.info("local dht nodes is empty,rejoin dht internet..");
             dhtServerHandler.joinDHT();
         }
+    }
+
+    /**
+     * 用于持续获取dht节点的任务
+     *
+     * @return
+     */
+    private Runnable getFindNodeTask() {
+        return new FindNodeTask(this);
     }
 
     @AllArgsConstructor

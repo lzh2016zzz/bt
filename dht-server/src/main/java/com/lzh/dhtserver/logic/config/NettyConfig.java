@@ -11,7 +11,6 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.util.CharsetUtil;
-import io.netty.util.concurrent.EventExecutorGroup;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
@@ -53,18 +52,17 @@ public class NettyConfig implements ApplicationListener<ContextClosedEvent> {
     @Value("${logic.so.sndbuf}")
     private int sndbuf;
 
-    private List<EventLoopGroup> groups = new CopyOnWriteArrayList<>();
+    private volatile EventLoopGroup group;
 
     private List<DHTServerContext> dhtServerContexts = new CopyOnWriteArrayList<>();
 
 
     @Bean(name = "serverBootstrap")
     public Bootstrap bootstrap(InetSocketAddress udpPort, byte[] selfNodeId, RedisTemplate redisTemplate, KafkaTemplate<String, String> kafkaTemplate) {
-        EventLoopGroup group = createEventLoopGroup();
+        EventLoopGroup group = group();
         Bootstrap bootstrap = new Bootstrap();
         DHTServerContext context = new DHTServerContext(redisTemplate, kafkaTemplate, bootstrap, udpPort, selfNodeId, new DHTServerHandler());
         bootstrap.group(group).channel(NioDatagramChannel.class).handler(new DHTChannelInitializer(context));
-        groups.add(group);
         dhtServerContexts.add(context);
         Map<ChannelOption<?>, Object> tcpChannelOptions = udpChannelOptions();
         Set<ChannelOption<?>> keySet = tcpChannelOptions.keySet();
@@ -89,14 +87,13 @@ public class NettyConfig implements ApplicationListener<ContextClosedEvent> {
 
 
     @Bean(name = "group")
-    public EventLoopGroup createEventLoopGroup() {
-        return new NioEventLoopGroup();
+    public synchronized EventLoopGroup group() {
+        if (this.group == null) {
+            this.group = new NioEventLoopGroup();
+        }
+        return this.group;
     }
 
-    @Bean(name = "udpSocketAddress")
-    public InetSocketAddress udpPort() {
-        return new InetSocketAddress(udpPort);
-    }
 
     @Bean(name = "udpChannelOptions")
     public Map<ChannelOption<?>, Object> udpChannelOptions() {
@@ -108,10 +105,16 @@ public class NettyConfig implements ApplicationListener<ContextClosedEvent> {
         return options;
     }
 
+
+    @Bean(name = "udpSocketAddress")
+    public InetSocketAddress udpPort() {
+        return new InetSocketAddress(udpPort);
+    }
+
     @Override
     public void onApplicationEvent(ContextClosedEvent contextClosedEvent) {
         if (contextClosedEvent.getApplicationContext().getParent() == null) {
-            groups.stream().forEach(EventExecutorGroup::shutdownGracefully);
+            group.shutdownGracefully();
         }
     }
 
