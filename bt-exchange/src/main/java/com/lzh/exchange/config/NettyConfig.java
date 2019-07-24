@@ -32,7 +32,7 @@ public class NettyConfig implements ApplicationListener<ContextClosedEvent> {
     public Bootstrap bootstrap() {
         log.info("init bootstrap bean。。");
         group = group();
-        int threads = Constant.NETTY_THREADS;
+        int threads = Constant.LOOP_GROUP_THREADS;
         int connectTimeout = timeoutSec * 1000;
         int minBufferSize = 1;
         int initialBufferSize = 102400;

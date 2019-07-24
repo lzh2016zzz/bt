@@ -1,7 +1,5 @@
 package com.lzh.exchange.config;
 
-import io.netty.util.NettyRuntime;
-
 public class Constant {
 
     //常量配置--------
@@ -23,7 +21,7 @@ public class Constant {
 
 
     //并发线程数配置
-    public static final int NETTY_THREADS = NettyRuntime.availableProcessors() + 2;
+    public static final int LOOP_GROUP_THREADS = 30;
 
     //metadata数据, 每一分片大小 16KB, 此处为byte
     public static final long METADATA_PIECE_SIZE = 16 << 10;
