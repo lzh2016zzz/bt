@@ -19,9 +19,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.event.ApplicationContextEvent;
 import org.springframework.context.event.ContextClosedEvent;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -38,13 +41,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Configuration
 @ConfigurationProperties(prefix = "logic")
 @Slf4j
-public class NettyConfig implements ApplicationListener<ContextClosedEvent> {
+public class NettyConfig implements ApplicationListener<ApplicationContextEvent> {
 
     @Value("${logic.udp.port}")
     private int udpPort;
 
-    @Value("${logic.so.backlog}")
-    private int backlog;
 
     @Value("${logic.so.rcvbuf}")
     private int rcvbuf;
@@ -70,25 +71,17 @@ public class NettyConfig implements ApplicationListener<ContextClosedEvent> {
                 ChannelOption option : keySet) {
             bootstrap.option(option, tcpChannelOptions.get(option));
         }
-        try {
-            context.startServer();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         return bootstrap;
     }
 
-//
-//    @PostConstruct
-//    public void init() {
-//        dhtServerContexts.forEach(context -> context.);
-//        findNodeTask.startServer();
-//    }
-//
-//    @PreDestroy
-//    public void stop() {
-//        findNodeTask.interrupt();
-//    }
+    private void initServerContext() {
+        dhtServerContexts.forEach(DHTServerContext::startServer);
+    }
+
+    @Scheduled(fixedDelay = 30 * 1000, initialDelay = 10 * 1000)
+    public void doJob() {
+        dhtServerContexts.forEach(DHTServerContext::joinDHT);
+    }
 
 
     @Bean(name = "group")
@@ -103,7 +96,6 @@ public class NettyConfig implements ApplicationListener<ContextClosedEvent> {
     @Bean(name = "udpChannelOptions")
     public Map<ChannelOption<?>, Object> udpChannelOptions() {
         Map<ChannelOption<?>, Object> options = new HashMap<>();
-        options.put(ChannelOption.SO_BACKLOG, backlog);
         options.put(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
         options.put(ChannelOption.SO_RCVBUF, rcvbuf);
         options.put(ChannelOption.SO_SNDBUF, sndbuf);
@@ -116,12 +108,16 @@ public class NettyConfig implements ApplicationListener<ContextClosedEvent> {
         return new InetSocketAddress(udpPort);
     }
 
+
     @Override
-    public void onApplicationEvent(ContextClosedEvent contextClosedEvent) {
-        if (contextClosedEvent.getApplicationContext().getParent() == null) {
+    public void onApplicationEvent(ApplicationContextEvent event) {
+        if (event instanceof ContextClosedEvent && event.getApplicationContext().getParent() == null) {
             group.shutdownGracefully();
+        } else if (event instanceof ContextRefreshedEvent && event.getApplicationContext().getParent() == null) {
+            initServerContext();
         }
     }
+
 
     @Bean(name = "selfNodeId")
     public byte[] selfNodeId() throws IOException, DecoderException {
@@ -131,14 +127,12 @@ public class NettyConfig implements ApplicationListener<ContextClosedEvent> {
             Optional<String> stringStream = Files.lines(path, CharsetUtil.UTF_8)
                     .flatMap(line -> Arrays.stream(line.split(" "))).findFirst();
             if (stringStream.isPresent()) {
-                log.info("self-node-Id : {}", stringStream.get().trim());
                 return Hex.decodeHex(stringStream.get());
             }
         } else {
             Files.createFile(path);
             byte[] b = NodeIdUtil.createRandomNodeId();
             String nodeIdHex = Hex.encodeHexString(b);
-            log.info("self-node-Id : {}", nodeIdHex);
             Files.write(path, nodeIdHex.getBytes(CharsetUtil.UTF_8));
             return b;
         }

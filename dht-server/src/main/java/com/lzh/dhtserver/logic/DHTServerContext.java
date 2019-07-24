@@ -9,12 +9,11 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.socket.DatagramPacket;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.binary.Hex;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
 
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -47,11 +46,11 @@ public class DHTServerContext {
     /**
      * 启动节点列表
      */
-    public static final List<InetSocketAddress> BOOTSTRAP_NODES = Collections.unmodifiableList(new ArrayList<>(Arrays.asList(
+    public static final List<InetSocketAddress> BOOTSTRAP_NODES = Collections.unmodifiableList(Arrays.asList(
             new InetSocketAddress("router.bittorrent.com", 6881),
             new InetSocketAddress("dht.transmissionbt.com", 6881),
             new InetSocketAddress("router.utorrent.com", 6881),
-            new InetSocketAddress("dht.aelitis.com", 6881))));
+            new InetSocketAddress("dht.aelitis.com", 6881)));
 
     public DHTServerContext(RedisTemplate redisTemplate, KafkaTemplate<String, String> kafkaTemplate, Bootstrap severBootstrap, InetSocketAddress udpPort, byte[] selfNodeId, DHTServerHandler dhtServerHandler) {
         this.redisTemplate = redisTemplate;
@@ -90,11 +89,15 @@ public class DHTServerContext {
      *
      * @throws Exception
      */
-    public void startServer() throws InterruptedException {
-        log.info("starting dht server,udpPort :{}  ", udpPort);
-        serverChannelFuture = severBootstrap.bind(udpPort).sync();
-        serverChannelFuture.channel().closeFuture();
-        log.info("starting dht server success");
+    public void startServer() {
+        try {
+            serverChannelFuture = severBootstrap.bind(udpPort).sync();
+            serverChannelFuture.channel().closeFuture();
+            log.info("starting dht node sever, port : {}, nodeId : {}", udpPort.getPort(), Hex.encodeHexString(this.selfNodeId));
+            getFindNodeTask().start();
+        } catch (InterruptedException e) {
+            log.error("start dht node failure,nodeId :{}", this.getSelfNodeId());
+        }
     }
 
     public ChannelHandler getDhtServerHandler() {
@@ -109,12 +112,10 @@ public class DHTServerContext {
         return kafkaTemplate;
     }
 
-    //TODO :: FIX join dht task
-    @Scheduled(fixedDelay = 30 * 1000, initialDelay = 10 * 1000)
-    public void doJob() {
+    public void joinDHT() {
         if (this.getNodesQueue().isEmpty()) {
-            log.info("local dht nodes is empty,rejoin dht internet..");
-            dhtServerHandler.joinDHT();
+            log.info("local dht nodes is empty,rejoin dht internet.port : {}", this.udpPort.getPort());
+            this.dhtServerHandler.joinDHT();
         }
     }
 
@@ -123,19 +124,22 @@ public class DHTServerContext {
      *
      * @return
      */
-    private Runnable getFindNodeTask() {
-        return new FindNodeTask(this);
+    private Thread getFindNodeTask() {
+        FindNodeTask task = new FindNodeTask(this);
+        task.setName("find-node-task-" + this.udpPort.getPort());
+        return task;
     }
 
     @AllArgsConstructor
-    private class FindNodeTask implements Runnable {
+    private class FindNodeTask extends Thread {
 
         DHTServerContext context;
 
         @Override
         public void run() {
             try {
-                while (!Thread.interrupted()) {
+                log.info("keep findNodeTask,port:{}", context.udpPort.getPort());
+                while (!isInterrupted()) {
                     try {
                         Node node = context.getNodesQueue().poll();
                         if (node != null) {
@@ -146,6 +150,7 @@ public class DHTServerContext {
                     Thread.sleep(50);
                 }
             } catch (InterruptedException e) {
+
             }
         }
     }
