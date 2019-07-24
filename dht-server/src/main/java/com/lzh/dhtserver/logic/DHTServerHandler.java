@@ -1,4 +1,4 @@
-package com.lzh.dhtserver.logic.handler;
+package com.lzh.dhtserver.logic;
 
 import com.alibaba.fastjson.JSON;
 import com.lzh.dhtserver.common.constant.Constant;
@@ -6,9 +6,7 @@ import com.lzh.dhtserver.common.entity.DownloadMsgInfo;
 import com.lzh.dhtserver.common.util.ByteUtil;
 import com.lzh.dhtserver.common.util.NodeIdUtil;
 import com.lzh.dhtserver.common.util.bencode.BencodingUtils;
-import com.lzh.dhtserver.logic.DHTServer;
 import com.lzh.dhtserver.logic.entity.Node;
-import com.lzh.dhtserver.logic.entity.UniqueBlockingQueue;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -16,15 +14,8 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.DatagramPacket;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -37,30 +28,14 @@ import java.util.Optional;
  * http://www.bittorrent.org/beps/bep_0005.html
  **/
 @Slf4j
-@Component
 @ChannelHandler.Sharable
 public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
-    @Autowired
-    private DHTServer dhtServer;
-
-    @Autowired
-    private RedisTemplate redisTemplate;
-
-    @Autowired
-    private KafkaTemplate<String, String> kafkaTemplate;
-
-    @Autowired
-    @Qualifier("selfNodeId")
-    private byte[] selfNodeId;
-
-    public static final byte[] EMPTY_BYTES = new byte[]{};
-
-    public static final UniqueBlockingQueue NODES_QUEUE = new UniqueBlockingQueue();
+    protected static final byte[] EMPTY_BYTES = new byte[]{};
+    protected DHTServerContext dhtServerContext;
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket packet) throws Exception {
-
         byte[] buff = new byte[packet.content().readableBytes()];
         packet.content().readBytes(buff);
 
@@ -85,7 +60,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
      * @param map
      * @param sender
      */
-    private void onQuery(Map<String, ?> map, InetSocketAddress sender) {
+    protected void onQuery(Map<String, ?> map, InetSocketAddress sender) {
         //transaction id 会话ID
         byte[] t = (byte[]) map.get("t");
         //query name: ping, find node, get_peers, announce_peer
@@ -109,6 +84,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
         }
     }
 
+
     /**
      * 回复 ping 请求
      * Response = {"t":"aa", "y":"r", "r": {"id":"自身节点ID"}}
@@ -116,11 +92,11 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
      * @param t
      * @param sender
      */
-    private void responsePing(byte[] t, InetSocketAddress sender) {
+    protected void responsePing(byte[] t, InetSocketAddress sender) {
         Map r = new HashMap<String, Object>();
-        r.put("id", selfNodeId);
+        r.put("id", dhtServerContext.getSelfNodeId());
         DatagramPacket packet = createPacket(t, "r", r, sender);
-        dhtServer.sendKRPC(packet);
+        dhtServerContext.sendKRPC(packet);
         //log.info("response ping[{}]", sender);
     }
 
@@ -131,12 +107,12 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
      * @param t
      * @param sender
      */
-    private void responseFindNode(byte[] t, InetSocketAddress sender) {
+    protected void responseFindNode(byte[] t, InetSocketAddress sender) {
         HashMap<String, Object> r = new HashMap<>();
-        r.put("id", selfNodeId);
+        r.put("id", dhtServerContext.getSelfNodeId());
         r.put("nodes", EMPTY_BYTES);
         DatagramPacket packet = createPacket(t, "r", r, sender);
-        dhtServer.sendKRPC(packet);
+        dhtServerContext.sendKRPC(packet);
         //log.info("response find_node[{}]", sender);
     }
 
@@ -147,55 +123,14 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
      * @param t
      * @param sender
      */
-    private void responseGetPeers(byte[] t, byte[] info_hash, InetSocketAddress sender) {
+    protected void responseGetPeers(byte[] t, byte[] info_hash, InetSocketAddress sender) {
         HashMap<String, Object> r = new HashMap<>();
         r.put("token", new byte[]{info_hash[0], info_hash[1]});
         r.put("nodes", EMPTY_BYTES);
-        r.put("id", NodeIdUtil.getNeighbor(selfNodeId, info_hash));
+        r.put("id", NodeIdUtil.getNeighbor(dhtServerContext.getSelfNodeId(), info_hash));
         DatagramPacket packet = createPacket(t, "r", r, sender);
-        dhtServer.sendKRPC(packet);
+        dhtServerContext.sendKRPC(packet);
         //log.info("response get_peers[{}]", sender);
-    }
-
-    /**
-     * 回复 announce_peer 请求，该请求中包含了对方正在下载的 torrent 的 info_hash 以及 端口号
-     * Response = {"t":"aa", "y":"r", "r": {"id":"mnopqrstuvwxyz123456"}}
-     *
-     * @param t
-     * @param a      请求参数 a：
-     *               {
-     *               "id" : "",
-     *               "implied_port": <0 or 1>,    //为1时表示当前自身的端口就是下载端口
-     *               "info_hash" : "<20-byte infohash of target torrent>",
-     *               "port" : ,
-     *               "token" : "" //get_peer 中回复的 token，用于检测是否一致
-     *               }
-     * @param sender
-     */
-    private void responseAnnouncePeer(byte[] t, Map a, InetSocketAddress sender) {
-
-        byte[] info_hash = (byte[]) a.get("info_hash");
-        byte[] token = (byte[]) a.get("token");
-        int port;
-        if (a.containsKey("implied_port") && ((BigInteger) a.get("implied_port")).shortValue() != 0) {
-            port = sender.getPort();
-        } else {
-            port = ((BigInteger) a.get("port")).intValue();
-        }
-
-        HashMap<String, Object> r = new HashMap<>();
-        r.put("id", NodeIdUtil.getNeighbor(selfNodeId, info_hash));
-        DatagramPacket packet = createPacket(t, "r", r, sender);
-        dhtServer.sendKRPC(packet);
-        // 将 info_hash 放进消息队列
-        String hex = Hex.encodeHexString(Optional.ofNullable(info_hash).orElse(EMPTY_BYTES));
-        if (token.length == 2 && info_hash[0] == token[0] && info_hash[1] == token[1]) {
-            if (redisTemplate.opsForSet().isMember(Constant.INFO_HASH_HEX, hex))
-                return;
-            redisTemplate.opsForSet().add(Constant.INFO_HASH_HEX, hex);
-            log.info("info_hash[AnnouncePeer] : {}:{} - {}", sender.getHostString(), port, ByteUtil.byteArrayToHex(info_hash));
-            kafkaTemplate.send(MessageBuilder.withPayload(JSON.toJSONString(new DownloadMsgInfo(sender.getHostString(), port, info_hash))).build());
-        }
     }
 
     /**
@@ -206,7 +141,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
      * @param map
      * @param sender
      */
-    private void onResponse(Map<String, ?> map, InetSocketAddress sender) {
+    protected void onResponse(Map<String, ?> map, InetSocketAddress sender) {
         //transaction id
         byte[] t = (byte[]) map.get("t");
         //由于在我们发送查询 DHT 节点请求时，构造的查询 transaction id 为字符串 find_node（见 findNode 方法），所以根据字符串判断响应请求即可
@@ -227,13 +162,53 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
 //        }
     }
 
+    /**
+     * 回复 announce_peer 请求，该请求中包含了对方正在下载的 torrent 的 info_hash 以及 端口号
+     * Response = {"t":"aa", "y":"r", "r": {"id":"mnopqrstuvwxyz123456"}}
+     *
+     * @param t
+     * @param a      请求参数 a：
+     *               {
+     *               "id" : "",
+     *               "implied_port": <0 or 1>,    //为1时表示当前自身的端口就是下载端口
+     *               "info_hash" : "<20-byte infohash of target torrent>",
+     *               "port" : ,
+     *               "token" : "" //get_peer 中回复的 token，用于检测是否一致
+     *               }
+     * @param sender
+     */
+    protected void responseAnnouncePeer(byte[] t, Map a, InetSocketAddress sender) {
+
+        byte[] info_hash = (byte[]) a.get("info_hash");
+        byte[] token = (byte[]) a.get("token");
+        int port;
+        if (a.containsKey("implied_port") && ((BigInteger) a.get("implied_port")).shortValue() != 0) {
+            port = sender.getPort();
+        } else {
+            port = ((BigInteger) a.get("port")).intValue();
+        }
+
+        HashMap<String, Object> r = new HashMap<>();
+        r.put("id", NodeIdUtil.getNeighbor(dhtServerContext.getSelfNodeId(), info_hash));
+        DatagramPacket packet = createPacket(t, "r", r, sender);
+        dhtServerContext.sendKRPC(packet);
+        // 将 info_hash 放进消息队列
+        String hex = Hex.encodeHexString(Optional.ofNullable(info_hash).orElse(EMPTY_BYTES));
+        if (token.length == 2 && info_hash[0] == token[0] && info_hash[1] == token[1]) {
+            if (dhtServerContext.getRedisTemplate().opsForSet().isMember(Constant.INFO_HASH_HEX, hex))
+                return;
+            dhtServerContext.getRedisTemplate().opsForSet().add(Constant.INFO_HASH_HEX, hex);
+            log.info("info_hash[AnnouncePeer] : {}:{} - {}", sender.getHostString(), port, ByteUtil.byteArrayToHex(info_hash));
+            dhtServerContext.getKafkaTemplate().send(MessageBuilder.withPayload(JSON.toJSONString(new DownloadMsgInfo(sender.getHostString(), port, info_hash))).build());
+        }
+    }
 
     /**
      * 解析响应内容中的 DHT 节点信息
      *
      * @param r
      */
-    private Void resolveNodes(Map r) {
+    protected Void resolveNodes(Map r) {
 
         byte[] nodes = (byte[]) r.get("nodes");
 
@@ -246,7 +221,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
                 InetSocketAddress address = new InetSocketAddress(ip, (0x0000FF00 & (nodes[i + 24] << 8)) | (0x000000FF & nodes[i + 25]));
                 byte[] nid = new byte[20];
                 System.arraycopy(nodes, i, nid, 0, 20);
-                NODES_QUEUE.offer(new Node(nid, address));
+                dhtServerContext.getNodesQueue().offer(new Node(nid, address));
                 //log.info("get node address=[{}] ", address);
             } catch (Exception e) {
                 log.error("", e);
@@ -259,8 +234,8 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
      * 加入 DHT 网络
      */
     public void joinDHT() {
-        for (InetSocketAddress addr : DHTServer.BOOTSTRAP_NODES) {
-            findNode(addr, null, selfNodeId);
+        for (InetSocketAddress addr : DHTServerContext.BOOTSTRAP_NODES) {
+            findNode(addr, null, dhtServerContext.getSelfNodeId());
         }
     }
 
@@ -271,13 +246,13 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
      * @param nid     请求节点 ID
      * @param target  目标查询节点
      */
-    private void findNode(InetSocketAddress address, byte[] nid, byte[] target) {
+    protected void findNode(InetSocketAddress address, byte[] nid, byte[] target) {
         HashMap<String, Object> map = new HashMap<>();
         map.put("target", target);
         if (nid != null)
-            map.put("id", NodeIdUtil.getNeighbor(selfNodeId, nid));
+            map.put("id", NodeIdUtil.getNeighbor(dhtServerContext.getSelfNodeId(), nid));
         DatagramPacket packet = createPacket("find_node".getBytes(), "q", map, address);
-        dhtServer.sendKRPC(packet);
+        dhtServerContext.sendKRPC(packet);
     }
 
     /**
@@ -288,12 +263,12 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
      * @param arg
      * @return
      */
-    private DatagramPacket createPacket(byte[] t, String y, Map<String, Object> arg, InetSocketAddress address) {
+    protected DatagramPacket createPacket(byte[] t, String y, Map<String, Object> arg, InetSocketAddress address) {
         HashMap<String, Object> map = new HashMap<>();
         map.put("t", t);
         map.put("y", y);
         if (!arg.containsKey("id"))
-            arg.put("id", selfNodeId);
+            arg.put("id", dhtServerContext.getSelfNodeId());
 
         if (y.equals("q")) {
             map.put("q", t);
@@ -306,36 +281,8 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
         return packet;
     }
 
-    /**
-     * 查询 DHT 节点线程，用于持续获取新的 DHT 节点
-     **/
-    private Thread findNodeTask = new Thread() {
 
-        @Override
-        public void run() {
-            try {
-                while (!isInterrupted()) {
-                    try {
-                        Node node = NODES_QUEUE.poll();
-                        if (node != null) {
-                            findNode(node.getAddr(), node.getNodeId(), selfNodeId);
-                        }
-                    } catch (Exception e) {
-                    }
-                    Thread.sleep(50);
-                }
-            } catch (InterruptedException e) {
-            }
-        }
-    };
-
-    @PostConstruct
-    public void init() {
-        findNodeTask.start();
-    }
-
-    @PreDestroy
-    public void stop() {
-        findNodeTask.interrupt();
+    public void setDhtServerContext(DHTServerContext dhtServerContext) {
+        this.dhtServerContext = dhtServerContext;
     }
 }

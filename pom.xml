@@ -28,6 +28,7 @@
     <modules>
         <module>dht-server</module>
         <module>bt-exchange</module>
+        <module>bt-api</module>
     </modules>
 
     <dependencyManagement>

@@ -7,6 +7,7 @@ import io.netty.channel.ChannelFutureListener;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.SocketException;
+import java.util.Arrays;
 
 @Slf4j
 public class ConnectListener implements ChannelFutureListener {
@@ -19,7 +20,7 @@ public class ConnectListener implements ChannelFutureListener {
     private String ip;
     //端口号
     private int port;
-    //task
+    //queryTask
     private MetaDataResultTask task;
 
     @Override
@@ -47,7 +48,7 @@ public class ConnectListener implements ChannelFutureListener {
 
     public ConnectListener(byte[] infoHash, byte[] selfPeerId, String ip, int port, MetaDataResultTask task) {
         this.infoHash = infoHash;
-        this.selfPeerId = selfPeerId;
+        this.selfPeerId = Arrays.copyOf(selfPeerId, selfPeerId.length);
         this.ip = ip;
         this.port = port;
         this.task = task;

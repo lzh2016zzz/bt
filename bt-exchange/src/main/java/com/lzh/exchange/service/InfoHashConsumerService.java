@@ -24,7 +24,7 @@ public class InfoHashConsumerService {
 
     @KafkaListener(id = "topic-torrent-meta-info-listener",
             topics = "${logic.kafka.topic.topic-info-hash-output}")
-    public void listen(String msgData) {
+    public void receiveInfoHash(String msgData) {
         //log.info("接收报文 : "+ msgData);
         JSONArray messages = null;
         try {
@@ -42,12 +42,9 @@ public class InfoHashConsumerService {
                     if (!StringUtils.isEmpty(ip = msg.getString("ip")) &&
                             !StringUtils.isEmpty(port = msg.getInteger("port"))) {
 
-                        //create task
-                        //log.info("add task: {},{}", infoHash, ip + ":" + port);
-
                         client.createTask(Base64Utils.decodeFromString(infoHash), ip, port)
                                 .success((meta) -> log.info("metadata :" + JSON.toJSONString(meta)))
-                                .failure((err) -> log.error("task failure,reason ： " + err.getMessage()))
+                                .failure((err) -> log.error("queryTask failure,reason ： " + err.getMessage()))
                                 .start();
                     }
                 } else {

@@ -1,9 +1,11 @@
 package com.lzh.dhtserver.logic.config;
 
 import com.lzh.dhtserver.common.util.NodeIdUtil;
+import com.lzh.dhtserver.logic.DHTChannelInitializer;
+import com.lzh.dhtserver.logic.DHTServerContext;
+import com.lzh.dhtserver.logic.DHTServerHandler;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -12,15 +14,17 @@ import io.netty.util.CharsetUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
-import org.apache.http.util.CharsetUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.event.ApplicationContextEvent;
 import org.springframework.context.event.ContextClosedEvent;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -28,7 +32,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Stream;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /***
  * Netty 服务器配置
@@ -37,66 +41,83 @@ import java.util.stream.Stream;
 @Configuration
 @ConfigurationProperties(prefix = "logic")
 @Slf4j
-public class NettyConfig implements ApplicationListener<ContextClosedEvent> {
+public class NettyConfig implements ApplicationListener<ApplicationContextEvent> {
 
     @Value("${logic.udp.port}")
     private int udpPort;
-    @Value("${logic.so.backlog}")
-    private int backlog;
+
+
     @Value("${logic.so.rcvbuf}")
     private int rcvbuf;
+
     @Value("${logic.so.sndbuf}")
     private int sndbuf;
 
-    private EventLoopGroup group;
+    private volatile EventLoopGroup group;
 
+    private List<DHTServerContext> dhtServerContexts = new CopyOnWriteArrayList<>();
 
-    @Autowired
-    @Qualifier("channelInitializer")
-    private ChannelInitializer channelInitializer;
 
     @Bean(name = "serverBootstrap")
-    public Bootstrap bootstrap() {
-        group = group();
-        Bootstrap b = new Bootstrap();
-        b.group(group)
-                .channel(NioDatagramChannel.class)
-                .handler(channelInitializer);
+    public Bootstrap bootstrap(InetSocketAddress udpPort, byte[] selfNodeId, RedisTemplate redisTemplate, KafkaTemplate<String, String> kafkaTemplate) {
+        EventLoopGroup group = group();
+        Bootstrap bootstrap = new Bootstrap();
+        DHTServerContext context = new DHTServerContext(redisTemplate, kafkaTemplate, bootstrap, udpPort, selfNodeId, new DHTServerHandler());
+        bootstrap.group(group).channel(NioDatagramChannel.class).handler(new DHTChannelInitializer(context));
+        dhtServerContexts.add(context);
         Map<ChannelOption<?>, Object> tcpChannelOptions = udpChannelOptions();
         Set<ChannelOption<?>> keySet = tcpChannelOptions.keySet();
         for (@SuppressWarnings("rawtypes")
                 ChannelOption option : keySet) {
-            b.option(option, tcpChannelOptions.get(option));
+            bootstrap.option(option, tcpChannelOptions.get(option));
         }
-        return b;
+        return bootstrap;
     }
+
+    private void initServerContext() {
+        dhtServerContexts.forEach(DHTServerContext::startServer);
+    }
+
+    @Scheduled(fixedDelay = 30 * 1000, initialDelay = 10 * 1000)
+    public void doJob() {
+        dhtServerContexts.forEach(DHTServerContext::joinDHT);
+    }
+
 
     @Bean(name = "group")
-    public EventLoopGroup group() {
-        return new NioEventLoopGroup();
+    public synchronized EventLoopGroup group() {
+        if (this.group == null) {
+            this.group = new NioEventLoopGroup();
+        }
+        return this.group;
     }
 
-    @Bean(name = "udpSocketAddress")
-    public InetSocketAddress udpPort() {
-        return new InetSocketAddress(udpPort);
-    }
 
     @Bean(name = "udpChannelOptions")
     public Map<ChannelOption<?>, Object> udpChannelOptions() {
         Map<ChannelOption<?>, Object> options = new HashMap<>();
-        options.put(ChannelOption.SO_BACKLOG, backlog);
         options.put(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
         options.put(ChannelOption.SO_RCVBUF, rcvbuf);
         options.put(ChannelOption.SO_SNDBUF, sndbuf);
         return options;
     }
 
+
+    @Bean(name = "udpSocketAddress")
+    public InetSocketAddress udpPort() {
+        return new InetSocketAddress(udpPort);
+    }
+
+
     @Override
-    public void onApplicationEvent(ContextClosedEvent contextClosedEvent) {
-        if (contextClosedEvent.getApplicationContext().getParent() == null) {
+    public void onApplicationEvent(ApplicationContextEvent event) {
+        if (event instanceof ContextClosedEvent && event.getApplicationContext().getParent() == null) {
             group.shutdownGracefully();
+        } else if (event instanceof ContextRefreshedEvent && event.getApplicationContext().getParent() == null) {
+            initServerContext();
         }
     }
+
 
     @Bean(name = "selfNodeId")
     public byte[] selfNodeId() throws IOException, DecoderException {
@@ -106,14 +127,12 @@ public class NettyConfig implements ApplicationListener<ContextClosedEvent> {
             Optional<String> stringStream = Files.lines(path, CharsetUtil.UTF_8)
                     .flatMap(line -> Arrays.stream(line.split(" "))).findFirst();
             if (stringStream.isPresent()) {
-                log.info("self-node-Id : {}",stringStream.get().trim());
                 return Hex.decodeHex(stringStream.get());
             }
         } else {
             Files.createFile(path);
             byte[] b = NodeIdUtil.createRandomNodeId();
             String nodeIdHex = Hex.encodeHexString(b);
-            log.info("self-node-Id : {}",nodeIdHex);
             Files.write(path, nodeIdHex.getBytes(CharsetUtil.UTF_8));
             return b;
         }
