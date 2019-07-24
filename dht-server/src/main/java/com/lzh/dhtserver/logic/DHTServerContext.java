@@ -111,6 +111,10 @@ public class DHTServerContext {
         return kafkaTemplate;
     }
 
+    public InetSocketAddress getUdpPort() {
+        return udpPort;
+    }
+
     public void joinDHT() {
         if (this.getNodesQueue().isEmpty()) {
             log.info("local dht nodes is empty,rejoin dht internet,port : {}", this.udpPort.getPort());
@@ -146,7 +150,7 @@ public class DHTServerContext {
                         }
                     } catch (Exception e) {
                     }
-                    Thread.sleep(200);
+                    Thread.sleep(50);
                 }
             } catch (InterruptedException e) {
 

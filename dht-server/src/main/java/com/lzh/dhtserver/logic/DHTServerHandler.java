@@ -3,7 +3,6 @@ package com.lzh.dhtserver.logic;
 import com.alibaba.fastjson.JSON;
 import com.lzh.dhtserver.common.constant.Constant;
 import com.lzh.dhtserver.common.entity.DownloadMsgInfo;
-import com.lzh.dhtserver.common.util.ByteUtil;
 import com.lzh.dhtserver.common.util.NodeIdUtil;
 import com.lzh.dhtserver.common.util.bencode.BencodingUtils;
 import com.lzh.dhtserver.logic.entity.Node;
@@ -198,7 +197,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
             if (dhtServerContext.getRedisTemplate().opsForSet().isMember(Constant.INFO_HASH_HEX, hex))
                 return;
             dhtServerContext.getRedisTemplate().opsForSet().add(Constant.INFO_HASH_HEX, hex);
-            log.info("info_hash[AnnouncePeer] : {}:{} - {}", sender.getHostString(), port, ByteUtil.byteArrayToHex(info_hash));
+            log.info("node{}[AP]:{}:{}", dhtServerContext.getUdpPort().getPort(),sender.getHostString(), port);
             dhtServerContext.getKafkaTemplate().send(MessageBuilder.withPayload(JSON.toJSONString(new DownloadMsgInfo(sender.getHostString(), port, info_hash))).build());
         }
     }
