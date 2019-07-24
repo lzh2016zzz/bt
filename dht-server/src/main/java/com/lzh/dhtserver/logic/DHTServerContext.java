@@ -19,8 +19,7 @@ import java.util.Collections;
 import java.util.List;
 
 /***
- * 模拟 DHT 节点服务器
- *
+ * DHT Node Server Context
  **/
 @Slf4j
 public class DHTServerContext {
@@ -114,7 +113,7 @@ public class DHTServerContext {
 
     public void joinDHT() {
         if (this.getNodesQueue().isEmpty()) {
-            log.info("local dht nodes is empty,rejoin dht internet.port : {}", this.udpPort.getPort());
+            log.info("local dht nodes is empty,rejoin dht internet,port : {}", this.udpPort.getPort());
             this.dhtServerHandler.joinDHT();
         }
     }
@@ -147,7 +146,7 @@ public class DHTServerContext {
                         }
                     } catch (Exception e) {
                     }
-                    Thread.sleep(50);
+                    Thread.sleep(200);
                 }
             } catch (InterruptedException e) {
 

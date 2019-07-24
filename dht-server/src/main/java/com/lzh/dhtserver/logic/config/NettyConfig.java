@@ -11,10 +11,14 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.util.CharsetUtil;
+import io.netty.util.concurrent.EventExecutorGroup;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
@@ -33,6 +37,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /***
  * Netty 服务器配置
@@ -46,32 +52,37 @@ public class NettyConfig implements ApplicationListener<ApplicationContextEvent>
     @Value("${logic.udp.port}")
     private int udpPort;
 
-
     @Value("${logic.so.rcvbuf}")
     private int rcvbuf;
 
     @Value("${logic.so.sndbuf}")
     private int sndbuf;
 
-    private volatile EventLoopGroup group;
+    private List<EventLoopGroup> group = new CopyOnWriteArrayList<>();
+
+    @Autowired
+    private ApplicationArguments applicationArguments;
 
     private List<DHTServerContext> dhtServerContexts = new CopyOnWriteArrayList<>();
 
 
-    @Bean(name = "serverBootstrap")
-    public Bootstrap bootstrap(InetSocketAddress udpPort, byte[] selfNodeId, RedisTemplate redisTemplate, KafkaTemplate<String, String> kafkaTemplate) {
-        EventLoopGroup group = group();
-        Bootstrap bootstrap = new Bootstrap();
-        DHTServerContext context = new DHTServerContext(redisTemplate, kafkaTemplate, bootstrap, udpPort, selfNodeId, new DHTServerHandler());
-        bootstrap.group(group).channel(NioDatagramChannel.class).handler(new DHTChannelInitializer(context));
-        dhtServerContexts.add(context);
-        Map<ChannelOption<?>, Object> tcpChannelOptions = udpChannelOptions();
-        Set<ChannelOption<?>> keySet = tcpChannelOptions.keySet();
-        for (@SuppressWarnings("rawtypes")
-                ChannelOption option : keySet) {
-            bootstrap.option(option, tcpChannelOptions.get(option));
+    @Bean(name = "dhtServerContexts")
+    public List<DHTServerContext> dhtServerContexts(@Qualifier("selfNodeIdMap") Map<Integer, byte[]> selfNodeIdMap,
+                                                    RedisTemplate redisTemplate, KafkaTemplate<String, String> kafkaTemplate) {
+        for (Map.Entry<Integer, byte[]> entry : selfNodeIdMap.entrySet()) {
+            EventLoopGroup group = group();
+            Bootstrap bootstrap = new Bootstrap();
+            DHTServerContext context = new DHTServerContext(redisTemplate, kafkaTemplate, bootstrap, new InetSocketAddress(entry.getKey()), entry.getValue(), new DHTServerHandler());
+            bootstrap.group(group).channel(NioDatagramChannel.class).handler(new DHTChannelInitializer(context));
+            dhtServerContexts.add(context);
+            Map<ChannelOption<?>, Object> tcpChannelOptions = udpChannelOptions();
+            Set<ChannelOption<?>> keySet = tcpChannelOptions.keySet();
+            for (@SuppressWarnings("rawtypes")
+                    ChannelOption option : keySet) {
+                bootstrap.option(option, tcpChannelOptions.get(option));
+            }
         }
-        return bootstrap;
+        return dhtServerContexts;
     }
 
     private void initServerContext() {
@@ -86,10 +97,9 @@ public class NettyConfig implements ApplicationListener<ApplicationContextEvent>
 
     @Bean(name = "group")
     public synchronized EventLoopGroup group() {
-        if (this.group == null) {
-            this.group = new NioEventLoopGroup();
-        }
-        return this.group;
+        EventLoopGroup eventLoopGroup = new NioEventLoopGroup();
+        group.add(eventLoopGroup);
+        return eventLoopGroup;
     }
 
 
@@ -103,40 +113,52 @@ public class NettyConfig implements ApplicationListener<ApplicationContextEvent>
     }
 
 
-    @Bean(name = "udpSocketAddress")
-    public InetSocketAddress udpPort() {
-        return new InetSocketAddress(udpPort);
-    }
-
-
     @Override
     public void onApplicationEvent(ApplicationContextEvent event) {
         if (event instanceof ContextClosedEvent && event.getApplicationContext().getParent() == null) {
-            group.shutdownGracefully();
+            group.stream().forEach(EventExecutorGroup::shutdownGracefully);
         } else if (event instanceof ContextRefreshedEvent && event.getApplicationContext().getParent() == null) {
             initServerContext();
         }
     }
 
 
-    @Bean(name = "selfNodeId")
-    public byte[] selfNodeId() throws IOException, DecoderException {
-        String fileName = "nodeID.txt";
-        Path path = Paths.get(fileName);
-        if (Files.exists(path)) {
-            Optional<String> stringStream = Files.lines(path, CharsetUtil.UTF_8)
-                    .flatMap(line -> Arrays.stream(line.split(" "))).findFirst();
-            if (stringStream.isPresent()) {
-                return Hex.decodeHex(stringStream.get());
-            }
+    @Bean(name = "selfNodeIdMap")
+    public Map<Integer, byte[]> selfNodeIds() throws IOException, DecoderException {
+        Map<Integer, byte[]> map = new HashMap<>();
+        String portsStr;
+
+        if (applicationArguments.getSourceArgs().length == 0) {
+            log.info("Without port configuration(use ',' to separate), the default dht node server(port: {}) will be started", udpPort);
+            portsStr = String.valueOf(udpPort);
         } else {
-            Files.createFile(path);
-            byte[] b = NodeIdUtil.createRandomNodeId();
-            String nodeIdHex = Hex.encodeHexString(b);
-            Files.write(path, nodeIdHex.getBytes(CharsetUtil.UTF_8));
-            return b;
+            portsStr = applicationArguments.getSourceArgs()[0];
         }
-        return null;
+
+        List<Integer> ports = Stream.of(portsStr.split(","))
+                .map(String::trim)
+                .map(Integer::parseInt)
+                .collect(Collectors.toList());
+
+        for (Iterator<Integer> it = ports.iterator(); it.hasNext(); ) {
+            Integer port = it.next();
+            String fileName = String.format("nodeID-%d.txt", port);
+            Path path = Paths.get(fileName);
+            if (Files.exists(path)) {
+                Optional<String> stringStream = Files.lines(path, CharsetUtil.UTF_8)
+                        .flatMap(line -> Arrays.stream(line.split(" "))).findFirst();
+                if (stringStream.isPresent()) {
+                    map.put(port, Hex.decodeHex(stringStream.get()));
+                }
+            } else {
+                Files.createFile(path);
+                byte[] b = NodeIdUtil.createRandomNodeId();
+                String nodeIdHex = Hex.encodeHexString(b);
+                Files.write(path, nodeIdHex.getBytes(CharsetUtil.UTF_8));
+                map.put(port, b);
+            }
+        }
+        return map;
     }
 
 }
