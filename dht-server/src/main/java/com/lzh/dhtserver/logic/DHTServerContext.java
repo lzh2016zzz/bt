@@ -7,7 +7,6 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.socket.DatagramPacket;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -59,6 +58,9 @@ public class DHTServerContext {
         if (selfNodeId != null) {
             this.selfNodeId = Arrays.copyOf(selfNodeId, selfNodeId.length);
         }
+        if (dhtServerHandler == null) {
+            throw new NullPointerException(" init dht server context failure : handlder can not be null");
+        }
         this.dhtServerHandler = dhtServerHandler;
         this.dhtServerHandler.setDhtServerContext(this);
     }
@@ -93,7 +95,6 @@ public class DHTServerContext {
             serverChannelFuture = severBootstrap.bind(udpPort).sync();
             serverChannelFuture.channel().closeFuture();
             log.info("starting dht node sever, port : {}, nodeId : {}", udpPort.getPort(), Hex.encodeHexString(this.selfNodeId));
-            getFindNodeTask().start();
         } catch (InterruptedException e) {
             log.error("start dht node failure,nodeId :{}", this.getSelfNodeId());
         }
@@ -117,44 +118,20 @@ public class DHTServerContext {
 
     public void joinDHT() {
         if (this.getNodesQueue().isEmpty()) {
-            log.info("local dht nodes is empty,rejoin dht internet,port : {}", this.udpPort.getPort());
+            log.info("local dht nodes is empty,rejoin dht internet , port : {}", this.udpPort.getPort());
             this.dhtServerHandler.joinDHT();
         }
     }
 
     /**
-     * 用于持续获取dht节点的任务
+     * 获取dht节点
      *
      * @return
      */
-    private Thread getFindNodeTask() {
-        FindNodeTask task = new FindNodeTask(this);
-        task.setName("find-node-task-" + this.udpPort.getPort());
-        return task;
-    }
-
-    @AllArgsConstructor
-    private class FindNodeTask extends Thread {
-
-        DHTServerContext context;
-
-        @Override
-        public void run() {
-            try {
-                log.info("keep findNodeTask,port:{}", context.udpPort.getPort());
-                while (!isInterrupted()) {
-                    try {
-                        Node node = context.getNodesQueue().poll();
-                        if (node != null) {
-                            context.dhtServerHandler.findNode(node.getAddr(), node.getNodeId(), context.getSelfNodeId());
-                        }
-                    } catch (Exception e) {
-                    }
-                    Thread.sleep(50);
-                }
-            } catch (InterruptedException e) {
-
-            }
+    public void findNode() {
+        Node node = this.getNodesQueue().poll();
+        if (node != null) {
+            this.dhtServerHandler.findNode(node.getAddr(), node.getNodeId(), this.getSelfNodeId());
         }
     }
 

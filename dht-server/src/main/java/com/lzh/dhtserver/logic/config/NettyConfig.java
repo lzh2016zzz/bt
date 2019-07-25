@@ -89,8 +89,14 @@ public class NettyConfig implements ApplicationListener<ApplicationContextEvent>
         dhtServerContexts.forEach(DHTServerContext::startServer);
     }
 
+
+    @Scheduled(fixedDelay = 1000, initialDelay = 10 * 1000)
+    public void findNodeJob() {
+        dhtServerContexts.forEach(DHTServerContext::findNode);
+    }
+
     @Scheduled(fixedDelay = 30 * 1000, initialDelay = 10 * 1000)
-    public void doJob() {
+    public void joinDhtJob() {
         dhtServerContexts.forEach(DHTServerContext::joinDHT);
     }
 
