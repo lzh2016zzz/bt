@@ -86,7 +86,7 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
         metadataSize = Integer.parseInt(otherStr.substring(0, otherStr.indexOf("e")));
         //分块数
         int blockSum = (int) Math.ceil((double) metadataSize / Constant.METADATA_PIECE_SIZE);
-        log.info("metadataSize:{},block num:{}", metadataSize, blockSum);
+        //log.info("metadataSize:{},block num:{}", metadataSize, blockSum);
         initResult((int) Constant.METADATA_PIECE_SIZE);
         //
 
@@ -135,7 +135,7 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        log.error("handling connection exception:", cause.getCause());
+        //log.error("handling connection exception:", cause.getCause());
         //关闭
         ctx.close();
     }

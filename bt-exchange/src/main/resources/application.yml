@@ -2,7 +2,7 @@
 logic:
   udp:
     port: 6998
-  connect-timeout-sec: 10
+  connect-timeout-sec: 30
   ##kafka配置
   kafka:
     broker:

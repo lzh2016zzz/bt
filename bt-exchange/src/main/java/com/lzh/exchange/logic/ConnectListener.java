@@ -27,7 +27,7 @@ public class ConnectListener implements ChannelFutureListener {
     public void operationComplete(ChannelFuture future) {
         if (future.isSuccess()) {
             //连接成功发送握手消息
-            log.info("connecting to node [{}:{} successful，send handshake message", ip, port);
+            //log.info("connecting to node [{}:{} successful，send handshake message", ip, port);
             sendHandshakeMessage(future);
         } else {
             task.doFailure(() -> new SocketException("connecting to node[" + ip + " : " + port + "] failure"));
