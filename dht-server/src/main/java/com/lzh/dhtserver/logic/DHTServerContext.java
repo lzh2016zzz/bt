@@ -59,7 +59,7 @@ public class DHTServerContext {
             this.selfNodeId = Arrays.copyOf(selfNodeId, selfNodeId.length);
         }
         if (dhtServerHandler == null) {
-            throw new NullPointerException(" init dht server context failure : handlder can not be null");
+            throw new NullPointerException(" init dht server context failure : handler can not be null");
         }
         this.dhtServerHandler = dhtServerHandler;
         this.dhtServerHandler.setDhtServerContext(this);
@@ -133,6 +133,10 @@ public class DHTServerContext {
         if (node != null) {
             this.dhtServerHandler.findNode(node.getAddr(), node.getNodeId(), this.getSelfNodeId());
         }
+    }
+
+    public boolean started() {
+        return this.serverChannelFuture == null;
     }
 
 
