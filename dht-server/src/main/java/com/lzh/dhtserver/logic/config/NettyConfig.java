@@ -28,6 +28,7 @@ import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -88,6 +89,10 @@ public class NettyConfig implements ApplicationListener<ApplicationContextEvent>
         dhtServerContexts.forEach(DHTServerContext::startServer);
     }
 
+    @Scheduled(fixedDelay = 30 * 1000, initialDelay = 10 * 1000)
+    public void doJob() {
+        dhtServerContexts.forEach(DHTServerContext::joinDHT);
+    }
 
 
     @Bean(name = "group")
