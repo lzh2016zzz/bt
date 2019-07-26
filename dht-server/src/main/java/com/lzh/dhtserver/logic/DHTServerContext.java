@@ -136,7 +136,7 @@ public class DHTServerContext {
     }
 
     public boolean started() {
-        return this.serverChannelFuture == null;
+        return this.serverChannelFuture != null;
     }
 
 
