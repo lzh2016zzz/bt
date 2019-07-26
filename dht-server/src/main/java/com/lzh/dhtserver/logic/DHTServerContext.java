@@ -71,7 +71,11 @@ public class DHTServerContext {
      * @param packet
      */
     public void sendKRPC(DatagramPacket packet) {
-        serverChannelFuture.channel().writeAndFlush(packet);
+        if (started()) {
+            serverChannelFuture.channel().writeAndFlush(packet);
+        } else {
+            throw new IllegalStateException("node is not ready,send KRPC package failure + id:" + Hex.encodeHex(this.selfNodeId));
+        }
     }
 
     public UniqueBlockingQueue getNodesQueue() {
