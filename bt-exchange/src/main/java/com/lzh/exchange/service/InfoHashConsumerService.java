@@ -43,7 +43,7 @@ public class InfoHashConsumerService {
 
                         client.createTask(Base64Utils.decodeFromString(infoHash), ip, port)
                                 .success((meta) -> metadataService.pushMetaData(meta))
-                                .failure((err) -> log.error("queryTask failure,reason ： " + err.getMessage()))
+                                .failure((err) -> log.error("queryTask failure,reason ： " + err))
                                 .start();
                     }
                 } else {

@@ -135,7 +135,8 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        log.error("handling connection exception:", cause.getCause());
+        //log.error("handling connection exception:", cause.getCause());
+        metaDataResultTask.doFailure(() -> cause);
         //关闭
         ctx.close();
     }
