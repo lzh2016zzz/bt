@@ -197,7 +197,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
             if (dhtServerContext.getRedisTemplate().opsForSet().isMember(Constant.INFO_HASH_HEX, hex))
                 return;
             dhtServerContext.getRedisTemplate().opsForSet().add(Constant.INFO_HASH_HEX, hex);
-            log.info("node{}[AP]:{}:{}", dhtServerContext.getUdpPort().getPort(),sender.getHostString(), port);
+            log.info("node{}[AP]:{}:{}", dhtServerContext.getUdpPort().getPort(), sender.getHostString(), port);
             dhtServerContext.getKafkaTemplate().send(MessageBuilder.withPayload(JSON.toJSONString(new DownloadMsgInfo(sender.getHostString(), port, info_hash))).build());
         }
     }

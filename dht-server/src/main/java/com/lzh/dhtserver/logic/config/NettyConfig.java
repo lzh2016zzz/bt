@@ -89,9 +89,7 @@ public class NettyConfig implements ApplicationListener<ApplicationContextEvent>
     }
 
 
-
-    @Bean(name = "group")
-    public synchronized EventLoopGroup group() {
+    private EventLoopGroup group() {
         EventLoopGroup eventLoopGroup = new NioEventLoopGroup();
         group.add(eventLoopGroup);
         return eventLoopGroup;
