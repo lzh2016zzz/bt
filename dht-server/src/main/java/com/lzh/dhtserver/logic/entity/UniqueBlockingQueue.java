@@ -1,8 +1,8 @@
 package com.lzh.dhtserver.logic.entity;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /***
@@ -11,23 +11,23 @@ import java.util.concurrent.LinkedBlockingQueue;
  **/
 public class UniqueBlockingQueue {
 
-	private Set<String> ips = new HashSet<>();
-	private BlockingQueue<Node> nodes = new LinkedBlockingQueue<>();
+    private Set<String> ips = new ConcurrentSkipListSet<>();
+    private BlockingQueue<Node> nodes = new LinkedBlockingQueue<>();
 
-	public boolean isEmpty() {
-		return nodes.isEmpty();
-	}
+    public boolean isEmpty() {
+        return nodes.isEmpty();
+    }
 
-	public boolean offer(Node node) {
-		if (ips.add(node.getAddr().getHostString()))
-			return nodes.offer(node);
-		return false;
-	}
+    public boolean offer(Node node) {
+        if (ips.add(node.getAddr().getHostString()))
+            return nodes.offer(node);
+        return false;
+    }
 
-	public Node poll() {
-		Node node = nodes.poll();
-		if (node != null)
-			ips.remove(node.getAddr().getHostString());
-		return node;
-	}
+    public Node poll() {
+        Node node = nodes.poll();
+        if (node != null)
+            ips.remove(node.getAddr().getHostString());
+        return node;
+    }
 }
