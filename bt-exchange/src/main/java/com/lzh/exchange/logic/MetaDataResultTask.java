@@ -172,7 +172,7 @@ public class MetaDataResultTask {
                     }
                     return null;
                 })
-                .orElseThrow(() -> new RuntimeException(""));
+                .orElseThrow(() -> new RuntimeException("parse text error ,text : " + metadataStr));
     }
 
     private String getSuffix(String name) {
