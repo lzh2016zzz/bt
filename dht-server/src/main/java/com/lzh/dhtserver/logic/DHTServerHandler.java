@@ -11,6 +11,7 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.DatagramPacket;
+import io.netty.util.CharsetUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
 import org.springframework.messaging.support.MessageBuilder;
@@ -18,6 +19,7 @@ import org.springframework.messaging.support.MessageBuilder;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -30,8 +32,11 @@ import java.util.Optional;
 @ChannelHandler.Sharable
 public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
-    protected static final byte[] EMPTY_BYTES = new byte[]{};
+    protected static final byte[] emptyBytes = new byte[]{};
+
     protected DHTServerContext dhtServerContext;
+
+    private static final Charset defaultCharset = CharsetUtil.ISO_8859_1;
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket packet) throws Exception {
@@ -43,7 +48,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
         if (map == null || map.get("y") == null)
             return;
 
-        String y = new String((byte[]) map.get("y"));
+        String y = new String((byte[]) map.get("y"), defaultCharset);
 
         if ("q".equals(y)) {            //请求 Queries
             onQuery(map, packet.sender());
@@ -63,7 +68,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
         //transaction id 会话ID
         byte[] t = (byte[]) map.get("t");
         //query name: ping, find node, get_peers, announce_peer
-        String q = new String((byte[]) map.get("q"));
+        String q = new String((byte[]) map.get("q"), defaultCharset);
         //query params
         Map<String, ?> a = (Map<String, ?>) map.get("a");
         //log.info("on query, query name is {}", q);
@@ -80,6 +85,8 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
             case "announce_peer"://announce_peers Query = {"t":"aa", "y":"q", "q":"announce_peer", "a": {"id":"abcdefghij0123456789", "implied_port": 1, "info_hash":"mnopqrstuvwxyz123456", "port": 6881, "token": "aoeusnth"}}
                 responseAnnouncePeer(t, a, sender);
                 break;
+            default:
+                return;
         }
     }
 
@@ -109,7 +116,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
     protected void responseFindNode(byte[] t, InetSocketAddress sender) {
         HashMap<String, Object> r = new HashMap<>();
         r.put("id", dhtServerContext.getSelfNodeId());
-        r.put("nodes", EMPTY_BYTES);
+        r.put("nodes", emptyBytes);
         DatagramPacket packet = createPacket(t, "r", r, sender);
         dhtServerContext.sendKRPC(packet);
         //log.info("response find_node[{}]", sender);
@@ -125,7 +132,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
     protected void responseGetPeers(byte[] t, byte[] info_hash, InetSocketAddress sender) {
         HashMap<String, Object> r = new HashMap<>();
         r.put("token", new byte[]{info_hash[0], info_hash[1]});
-        r.put("nodes", EMPTY_BYTES);
+        r.put("nodes", emptyBytes);
         r.put("id", NodeIdUtil.getNeighbor(dhtServerContext.getSelfNodeId(), info_hash));
         DatagramPacket packet = createPacket(t, "r", r, sender);
         dhtServerContext.sendKRPC(packet);
@@ -144,7 +151,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
         //transaction id
         byte[] t = (byte[]) map.get("t");
         //由于在我们发送查询 DHT 节点请求时，构造的查询 transaction id 为字符串 find_node（见 findNode 方法），所以根据字符串判断响应请求即可
-        String type = new String(t);
+        String type = new String(t, defaultCharset);
         if ("find_node".equals(type)) {
             //处理error
             Object r;
@@ -192,7 +199,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
         DatagramPacket packet = createPacket(t, "r", r, sender);
         dhtServerContext.sendKRPC(packet);
         // 将 info_hash 放进消息队列
-        String hex = Hex.encodeHexString(Optional.ofNullable(info_hash).orElse(EMPTY_BYTES));
+        String hex = Hex.encodeHexString(Optional.ofNullable(info_hash).orElse(emptyBytes));
         if (token.length == 2 && info_hash[0] == token[0] && info_hash[1] == token[1]) {
             if (dhtServerContext.getRedisTemplate().opsForSet().isMember(Constant.INFO_HASH_HEX, hex))
                 return;
@@ -250,7 +257,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
         map.put("target", target);
         if (nid != null)
             map.put("id", NodeIdUtil.getNeighbor(dhtServerContext.getSelfNodeId(), nid));
-        DatagramPacket packet = createPacket("find_node".getBytes(), "q", map, address);
+        DatagramPacket packet = createPacket("find_node".getBytes(CharsetUtil.ISO_8859_1), "q", map, address);
         dhtServerContext.sendKRPC(packet);
     }
 
