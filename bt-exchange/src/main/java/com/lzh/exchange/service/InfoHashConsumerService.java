@@ -3,6 +3,7 @@ package com.lzh.exchange.service;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.lzh.exchange.logic.ExchangeClient;
+import io.netty.handler.timeout.ReadTimeoutException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -10,6 +11,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Base64Utils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+
+import java.net.SocketException;
 
 @Slf4j
 @Component
@@ -43,7 +46,11 @@ public class InfoHashConsumerService {
 
                         client.createTask(Base64Utils.decodeFromString(infoHash), ip, port)
                                 .success((meta) -> metadataService.pushMetaData(meta))
-                                .failure((err) -> log.error("queryTask failure,reason ： " + err))
+                                .failure((err) -> {
+                                    if (!(err instanceof ReadTimeoutException) && !(err instanceof SocketException)) {
+                                        log.error("queryTask failure,reason ： " + err);
+                                    }
+                                })
                                 .start();
                     }
                 } else {
