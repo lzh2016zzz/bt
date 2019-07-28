@@ -172,8 +172,12 @@ public class MetaDataResultTask {
                     }
                     return null;
                 })
-                .orElseThrow(() -> new RuntimeException("parse text error ,text : " + metadataStr));
+                .orElseGet(() -> {
+                    String s = metadataStr.replaceAll("\\u0000", "");
+                    return bytes2Metadata(s.getBytes(CharsetUtil.ISO_8859_1));
+                });
     }
+
 
     private String getSuffix(String name) {
         int index = name.lastIndexOf(".");
