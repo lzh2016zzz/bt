@@ -25,7 +25,7 @@ public class ExchangeClient {
     /**
      * 本机的 peerId
      */
-    public static final byte[] peerId = NodeIdUtil.createRandomNodeId();
+    private static final byte[] peerId = NodeIdUtil.createRandomNodeId();
 
     /**
      * 发送数据

@@ -47,8 +47,12 @@ public class ConnectListener implements ChannelFutureListener {
     }
 
     public ConnectListener(byte[] infoHash, byte[] selfPeerId, String ip, int port, MetaDataResultTask task) {
-        this.infoHash = infoHash;
-        this.selfPeerId = Arrays.copyOf(selfPeerId, selfPeerId.length);
+        if (infoHash != null) {
+            this.infoHash = infoHash;
+        }
+        if (selfPeerId != null) {
+            this.selfPeerId = Arrays.copyOf(selfPeerId, selfPeerId.length);
+        }
         this.ip = ip;
         this.port = port;
         this.task = task;
