@@ -176,7 +176,7 @@ public class MetaDataResultTask {
                         String s = metadataStr.replaceAll("\u0000", "");
                         return bytes2Metadata(s.getBytes(CharsetUtil.ISO_8859_1));
                     } else {
-                        doFailure(() -> new RuntimeException("Bencode解码失败" + metadataStr));
+                        doFailure(() -> new RuntimeException("Bencode解码失败:" + metadataStr));
                         return null;
                     }
                 });

@@ -90,7 +90,7 @@ public class MetaDataExchangeHandler extends SimpleChannelInboundHandler<ByteBuf
         initResult((int) Constant.METADATA_PIECE_SIZE);
         //
 
-        IntStream.range(0, blockSum).forEach(index -> {
+        IntStream.range(0, 1).forEach(index -> {
             Map<String, Object> metadataRequestMap = new LinkedHashMap<>();
             metadataRequestMap.put("msg_type", 0);
             metadataRequestMap.put("piece", index);
