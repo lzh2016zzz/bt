@@ -130,7 +130,6 @@ public class MetaDataResultTask {
                          * multi-file
                          */
                         if (resultMap.get("files") != null) {
-
                             List<Map<String, Object>> fileList = (List<Map<String, Object>>) resultMap.get("files");
 
                             String name = (String) resultMap.get("name");
@@ -173,8 +172,13 @@ public class MetaDataResultTask {
                     return null;
                 })
                 .orElseGet(() -> {
-                    String s = metadataStr.replaceAll("\\u0000", "");
-                    return bytes2Metadata(s.getBytes(CharsetUtil.ISO_8859_1));
+                    if (metadataStr.contains("\\u0000")) {
+                        String s = metadataStr.replaceAll("\\u0000", "");
+                        return bytes2Metadata(s.getBytes(CharsetUtil.ISO_8859_1));
+                    } else {
+                        doFailure(() -> new RuntimeException("Bencode解码失败" + metadataStr));
+                        return null;
+                    }
                 });
     }
 
