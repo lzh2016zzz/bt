@@ -152,7 +152,7 @@ public class NettyConfig implements ApplicationListener<ApplicationContextEvent>
                 map.put(port, b);
             }
         }
-        return map;
+        return Collections.unmodifiableMap(map);
     }
 
 }
