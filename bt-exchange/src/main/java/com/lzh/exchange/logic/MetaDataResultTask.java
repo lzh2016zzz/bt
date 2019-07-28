@@ -172,8 +172,8 @@ public class MetaDataResultTask {
                     return null;
                 })
                 .orElseGet(() -> {
-                    if (metadataStr.contains("\\u0000")) {
-                        String s = metadataStr.replaceAll("\\u0000", "");
+                    if (metadataStr.contains("\u0000")) {
+                        String s = metadataStr.replaceAll("\u0000", "");
                         return bytes2Metadata(s.getBytes(CharsetUtil.ISO_8859_1));
                     } else {
                         doFailure(() -> new RuntimeException("Bencode解码失败" + metadataStr));
