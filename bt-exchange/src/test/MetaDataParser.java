@@ -16,7 +16,7 @@ public class MetaDataParser {
     public static void main(String[] args) throws Exception {
         byte[] b = Hex.decodeHex(metadataHex);
         String s = new String(b, CharsetUtil.UTF_8);
-        String s2 = "d5:filesld4:ed2k16:g�j���\u001E'\u000B����\t�8:filehash20:���kw�\u0003gR�\u0012��;�h#� �6:lengthi117693168e4:pathl91:[偷情]秀人网嫩模龙泽美熙流出视频第3部酒店援交胖土豪呻吟给力.zipe10:path.utf-8l91:[偷情]秀人网嫩模龙泽美熙流出视频第3部酒店援交胖土豪呻吟给力.zipeed6:lengthi9488e4:pathl104:_____padding_file_0_如果您看到此文件，请升级到BitComet(比特彗星)0.85或以上版本____e10:path.utf-8l104:_____padding_file_0_如果您看到此文件，请升级到BitComet(比特彗星)0.85或以上版本____eed4:ed2k16:z���9���(��u\u0016�2�8:filehash20:�Ib�4/l�<�EjhD{��?+�6:lengthi122e4:pathl22:更多免费资源.urle10:path.utf-8l22:更多免费资源.urleed6:lengthi130950e4:pathl104:_____padding_file_1_如果您看到此文件，请升级到BitComet(比特彗星)0.85或以上版本____e10:path.utf-8l104:_____padding_file_1_如果您看到此文件，请升级到BitComet(比特彗星)0.85或以上版本____eed4:ed2k16:\f�j2b�\u007F˽Pj\u001FQ{U�8:filehash20:�\u0014a� ��\u0017=��۴�_���\u0016\u00046:lengthi158e4:pathl16:资源声明.txte10:path.utf-8l16:资源声明.txteee4:name87:[偷情]秀人网嫩模龙泽美熙流出视频第3部酒店援交胖土豪呻吟给力10:name.utf-887:[偷情]秀人网嫩模龙泽美熙流出视频第3部酒店援交胖土豪呻吟给力12:piece lengthi131072e";
+        String s2 = b2;
         Bencode bencode = new Bencode(CharsetUtil.UTF_8);
         Map map = bencode.decode(s2.getBytes(CharsetUtil.UTF_8), Map.class);
 
