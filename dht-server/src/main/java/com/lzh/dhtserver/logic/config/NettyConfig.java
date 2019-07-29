@@ -142,7 +142,7 @@ public class NettyConfig implements ApplicationListener<ApplicationContextEvent>
                 Optional<String> stringStream = Files.lines(path, CharsetUtil.UTF_8)
                         .flatMap(line -> Arrays.stream(line.split(" "))).findFirst();
                 if (stringStream.isPresent()) {
-                    map.put(port, Hex.decodeHex(stringStream.get()));
+                    map.put(port, Hex.decodeHex(stringStream.get().toCharArray()));
                 }
             } else {
                 Files.createFile(path);
