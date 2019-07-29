@@ -37,6 +37,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /***
@@ -123,16 +124,25 @@ public class NettyConfig implements ApplicationListener<ApplicationContextEvent>
         String portsStr;
 
         if (applicationArguments.getSourceArgs().length == 0) {
-            log.info("Without port configuration(use ',' to separate), the default dht node server(port: {}) will be started", udpPort);
+            log.info("Without port configuration(use ',' to separate or startPort~endPort ), the default dht node server(port: {}) will be started", udpPort);
             portsStr = String.valueOf(udpPort);
         } else {
-            portsStr = applicationArguments.getSourceArgs()[0];
+            portsStr = applicationArguments.getSourceArgs()[0].trim();
         }
 
-        List<Integer> ports = Stream.of(portsStr.split(","))
-                .map(String::trim)
-                .map(Integer::parseInt)
-                .collect(Collectors.toList());
+        List<Integer> ports;
+
+        if (portsStr.matches("^\\d{1,5}[~-]\\d{1,5}$")) {
+            String[] port = portsStr.split("[~-]");
+            ports = IntStream.range(Integer.parseInt(port[0]), Integer.parseInt(port[1]))
+                    .boxed()
+                    .collect(Collectors.toList());
+        } else {
+            ports = Stream.of(portsStr.split(","))
+                    .map(String::trim)
+                    .map(Integer::parseInt)
+                    .collect(Collectors.toList());
+        }
 
         for (Iterator<Integer> it = ports.iterator(); it.hasNext(); ) {
             Integer port = it.next();
