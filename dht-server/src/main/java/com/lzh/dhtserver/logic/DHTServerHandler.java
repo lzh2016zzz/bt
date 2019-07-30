@@ -288,6 +288,14 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
     }
 
 
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        log.error("an exception was fired, caught:", cause);
+        //关闭
+        ctx.close();
+    }
+
+
     public void setDhtServerContext(DHTServerContext dhtServerContext) {
         this.dhtServerContext = dhtServerContext;
     }
