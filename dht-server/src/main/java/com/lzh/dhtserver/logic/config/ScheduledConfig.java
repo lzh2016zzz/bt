@@ -16,13 +16,8 @@ public class ScheduledConfig {
     List<DHTServerContext> dhtServerContexts;
 
 
-    @Scheduled(fixedDelay = 10, initialDelay = 10 * 1000)
+    @Scheduled(fixedDelay = 50, initialDelay = 10 * 1000)
     public void findNodeJob() {
         dhtServerContexts.stream().filter(DHTServerContext::started).forEach(DHTServerContext::findNode);
-    }
-
-    @Scheduled(fixedDelay = 30 * 1000, initialDelay = 10 * 1000)
-    public void joinDhtJob() {
-        dhtServerContexts.stream().filter(DHTServerContext::started).forEach(DHTServerContext::joinDHT);
     }
 }

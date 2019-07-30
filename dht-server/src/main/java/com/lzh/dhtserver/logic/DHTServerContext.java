@@ -136,6 +136,8 @@ public class DHTServerContext {
         Node node = this.getNodesQueue().poll();
         if (node != null) {
             this.dhtServerHandler.findNode(node.getAddr(), node.getNodeId(), this.getSelfNodeId());
+        } else {
+            joinDHT();
         }
     }
 
