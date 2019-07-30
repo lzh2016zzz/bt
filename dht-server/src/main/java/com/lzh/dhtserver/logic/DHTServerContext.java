@@ -40,6 +40,8 @@ public class DHTServerContext {
 
     private final UniqueBlockingQueue nodesQueue = new UniqueBlockingQueue();
 
+    private boolean started = false;
+
 
     /**
      * 启动节点列表
@@ -98,6 +100,7 @@ public class DHTServerContext {
         try {
             serverChannelFuture = severBootstrap.bind(udpPort).sync();
             serverChannelFuture.channel().closeFuture();
+            started = true;
             log.info("starting dht node sever, port : {}, nodeId : {}", udpPort.getPort(), Hex.encodeHexString(this.selfNodeId));
         } catch (InterruptedException e) {
             log.error("start dht node failure,nodeId :{}", this.getSelfNodeId());
@@ -142,7 +145,7 @@ public class DHTServerContext {
     }
 
     public boolean started() {
-        return this.serverChannelFuture != null;
+        return this.started;
     }
 
 
