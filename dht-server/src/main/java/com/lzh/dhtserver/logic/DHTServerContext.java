@@ -77,7 +77,7 @@ public class DHTServerContext {
         if (started()) {
             serverChannelFuture.channel().writeAndFlush(packet);
         } else {
-            throw new IllegalStateException("node is not ready,send KRPC package failure + id:" + Hex.encodeHex(this.selfNodeId));
+            log.error("node is not ready,send KRPC package failure + id:" + Hex.encodeHexString(this.getSelfNodeId()));
         }
     }
 
@@ -99,14 +99,14 @@ public class DHTServerContext {
      */
     public void startServer() {
         try {
+            started = true;
             serverChannelFuture = severBootstrap.bind(udpPort).sync();
             serverChannelFuture.channel().closeFuture();
             startFindNodeTask();
             joinDHT();
-            started = true;
             log.info("starting dht node sever, port : {}, nodeId : {}", udpPort.getPort(), Hex.encodeHexString(this.selfNodeId));
         } catch (InterruptedException e) {
-            log.error("start dht node failure,nodeId :{}", this.getSelfNodeId());
+            log.error("start dht node task is Interrupted,nodeId :{}", this.getSelfNodeId());
         }
     }
 
