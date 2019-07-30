@@ -33,8 +33,7 @@ public class UniqueBlockingQueue {
 
     public Node take() throws InterruptedException {
         Node node = nodes.take();
-        if (node != null)
-            ips.remove(node.getAddr().getHostString());
+        ips.remove(node.getAddr().getHostString());
         return node;
     }
 
