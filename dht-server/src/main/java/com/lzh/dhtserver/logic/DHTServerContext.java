@@ -138,10 +138,10 @@ public class DHTServerContext {
      *
      * @return
      */
-    private Thread startFindNodeTask() {
+    private void startFindNodeTask() {
         FindNodeTask task = new FindNodeTask(this);
         task.setName("find-node-task-" + this.udpPort.getPort());
-        return task;
+        task.start();
     }
 
     @AllArgsConstructor
