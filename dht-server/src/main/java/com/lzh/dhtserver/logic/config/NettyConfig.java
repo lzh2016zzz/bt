@@ -159,6 +159,8 @@ public class NettyConfig implements ApplicationListener<ApplicationContextEvent>
                         .flatMap(line -> Arrays.stream(line.split(" "))).findFirst();
                 if (stringStream.isPresent()) {
                     map.put(port, Hex.decodeHex(stringStream.get().toCharArray()));
+                } else {
+                    throw new IllegalArgumentException("can not read nodeId from " + fileName);
                 }
             } else {
                 Files.createFile(path);
