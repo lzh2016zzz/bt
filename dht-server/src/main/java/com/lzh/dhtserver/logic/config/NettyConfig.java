@@ -137,7 +137,7 @@ public class NettyConfig implements ApplicationListener<ApplicationContextEvent>
             Integer from = Optional.of(Integer.parseInt(port[0]))
                     .filter(n -> !(n < 0 || n > 65535))
                     .orElseThrow(() -> new IllegalArgumentException("port is not legal(0-65535)"));
-            Integer to = Optional.of(Integer.parseInt(port[0]))
+            Integer to = Optional.of(Integer.parseInt(port[1]))
                     .filter(n -> !(n < 0 || n > 65535))
                     .orElseThrow(() -> new IllegalArgumentException("port is not legal(0-65535)"));
             ports = IntStream.range(from, to)
