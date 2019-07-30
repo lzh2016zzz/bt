@@ -134,7 +134,13 @@ public class NettyConfig implements ApplicationListener<ApplicationContextEvent>
 
         if (portsStr.matches("^\\d{1,5}[~-]\\d{1,5}$")) {
             String[] port = portsStr.split("[~-]");
-            ports = IntStream.range(Integer.parseInt(port[0]), Integer.parseInt(port[1]))
+            Integer from = Optional.of(Integer.parseInt(port[0]))
+                    .filter(n -> n < 1 || n > 65535)
+                    .orElseThrow(() -> new IllegalArgumentException("port can not < 1 or < 65535"));
+            Integer to = Optional.of(Integer.parseInt(port[0]))
+                    .filter(n -> n < 1 || n > 65535)
+                    .orElseThrow(() -> new IllegalArgumentException("port can not < 1 or < 65535"));
+            ports = IntStream.range(from, to)
                     .boxed()
                     .collect(Collectors.toList());
         } else {
