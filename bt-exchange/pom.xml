@@ -61,5 +61,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
         </plugins>
+
+        <finalName>bt-exchange</finalName>
     </build>
 </project>

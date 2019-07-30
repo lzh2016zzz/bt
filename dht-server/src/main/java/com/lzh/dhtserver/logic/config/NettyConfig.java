@@ -132,9 +132,15 @@ public class NettyConfig implements ApplicationListener<ApplicationContextEvent>
 
         List<Integer> ports;
 
-        if (portsStr.matches("^\\d{1,5}[~-]\\d{1,5}$")) {
+        if (portsStr.matches("^\\d+[~-]\\d+$")) {
             String[] port = portsStr.split("[~-]");
-            ports = IntStream.range(Integer.parseInt(port[0]), Integer.parseInt(port[1]))
+            Integer from = Optional.of(Integer.parseInt(port[0]))
+                    .filter(n -> !(n < 0 || n > 65535))
+                    .orElseThrow(() -> new IllegalArgumentException("port is not legal(0-65535)"));
+            Integer to = Optional.of(Integer.parseInt(port[0]))
+                    .filter(n -> !(n < 0 || n > 65535))
+                    .orElseThrow(() -> new IllegalArgumentException("port is not legal(0-65535)"));
+            ports = IntStream.range(from, to)
                     .boxed()
                     .collect(Collectors.toList());
         } else {
@@ -153,6 +159,8 @@ public class NettyConfig implements ApplicationListener<ApplicationContextEvent>
                         .flatMap(line -> Arrays.stream(line.split(" "))).findFirst();
                 if (stringStream.isPresent()) {
                     map.put(port, Hex.decodeHex(stringStream.get().toCharArray()));
+                } else {
+                    throw new IllegalArgumentException("can not read nodeId from " + fileName);
                 }
             } else {
                 Files.createFile(path);
