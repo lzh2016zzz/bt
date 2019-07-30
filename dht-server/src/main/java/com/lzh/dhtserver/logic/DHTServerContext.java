@@ -7,6 +7,7 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.socket.DatagramPacket;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -100,6 +101,8 @@ public class DHTServerContext {
         try {
             serverChannelFuture = severBootstrap.bind(udpPort).sync();
             serverChannelFuture.channel().closeFuture();
+            startFindNodeTask();
+            joinDHT();
             started = true;
             log.info("starting dht node sever, port : {}, nodeId : {}", udpPort.getPort(), Hex.encodeHexString(this.selfNodeId));
         } catch (InterruptedException e) {
@@ -131,18 +134,38 @@ public class DHTServerContext {
     }
 
     /**
-     * 获取dht节点
+     * 用于持续获取dht节点的任务
      *
      * @return
      */
-    public void findNode() {
-        Node node = this.getNodesQueue().poll();
-        if (node != null) {
-            this.dhtServerHandler.findNode(node.getAddr(), node.getNodeId(), this.getSelfNodeId());
-        } else {
-            joinDHT();
+    private Thread startFindNodeTask() {
+        FindNodeTask task = new FindNodeTask(this);
+        task.setName("find-node-task-" + this.udpPort.getPort());
+        return task;
+    }
+
+    @AllArgsConstructor
+    private class FindNodeTask extends Thread {
+
+        DHTServerContext context;
+
+        @Override
+        public void run() {
+            try {
+                log.info("keep findNodeTask,port:{}", context.udpPort.getPort());
+                while (!isInterrupted()) {
+                    Node node = context.getNodesQueue().take();
+                    if (node != null) {
+                        context.dhtServerHandler.findNode(node.getAddr(), node.getNodeId(), context.getSelfNodeId());
+                    }
+                    Thread.sleep(50);
+                }
+            } catch (InterruptedException e) {
+
+            }
         }
     }
+
 
     public boolean started() {
         return this.started;

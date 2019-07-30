@@ -30,4 +30,13 @@ public class UniqueBlockingQueue {
             ips.remove(node.getAddr().getHostString());
         return node;
     }
+
+    public Node take() throws InterruptedException {
+        Node node = nodes.take();
+        if (node != null)
+            ips.remove(node.getAddr().getHostString());
+        return node;
+    }
+
+
 }
