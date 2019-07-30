@@ -135,10 +135,10 @@ public class NettyConfig implements ApplicationListener<ApplicationContextEvent>
         if (portsStr.matches("^\\d+[~-]\\d+$")) {
             String[] port = portsStr.split("[~-]");
             Integer from = Optional.of(Integer.parseInt(port[0]))
-                    .filter(n -> n < 0 || n > 65535)
+                    .filter(n -> !(n < 0 || n > 65535))
                     .orElseThrow(() -> new IllegalArgumentException("port is not legal(0-65535)"));
             Integer to = Optional.of(Integer.parseInt(port[0]))
-                    .filter(n -> n < 0 || n > 65535)
+                    .filter(n -> !(n < 0 || n > 65535))
                     .orElseThrow(() -> new IllegalArgumentException("port is not legal(0-65535)"));
             ports = IntStream.range(from, to)
                     .boxed()
