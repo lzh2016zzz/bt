@@ -1,31 +1,39 @@
 package com.lzh.bt.api.entity;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 
-import java.time.ZonedDateTime;
+import java.io.Serializable;
 
 
 @Data
 @Builder
-public class Metadata {
-
+@Document(indexName = "bt", type = "MetaInfo")
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
+public class Metadata implements Serializable {
 
     /**
      * info-hash hexadecimal
      */
-
+    @Id
+    @Field(type = FieldType.Keyword)
     private String infoHash;
-
 
     /**
      * is the metadata only one file
      */
+    @Field(type = FieldType.Keyword)
     private boolean single;
 
     /**
      * metadata name
      */
+    @Field(searchAnalyzer = "ik_smart", analyzer = "ik_max_word")
     private String name;
 
     /**
@@ -45,6 +53,7 @@ public class Metadata {
      * ]
      * }]
      */
+    @Field(type = FieldType.Text)
     private String multiFile;
 
 
@@ -55,24 +64,27 @@ public class Metadata {
      * <br/>
      * example : jpg,png,flac,mp4
      */
+    @Field(searchAnalyzer = "ik_smart", analyzer = "ik_smart")
     private String suffixes;
 
     /**
      * files total length
      */
-
+    @Field(type = FieldType.Long)
     private Long length;
 
 
     /**
      * hot
      */
+    @Field(type = FieldType.Long)
     private Long hot;
 
     /**
      * createTime
      */
-    private ZonedDateTime create = ZonedDateTime.now();
+    @Field(type = FieldType.Long)
+    private Long create;
 
 
 }

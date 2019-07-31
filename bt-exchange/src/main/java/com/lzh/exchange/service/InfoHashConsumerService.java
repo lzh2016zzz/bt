@@ -7,7 +7,7 @@ import io.netty.handler.timeout.ReadTimeoutException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.util.Base64Utils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -15,7 +15,7 @@ import org.springframework.util.StringUtils;
 import java.net.SocketException;
 
 @Slf4j
-@Component
+@Service
 public class InfoHashConsumerService {
 
     @Autowired
