@@ -1,0 +1,17 @@
+spring:
+  data:
+    elasticsearch:
+      cluster-name: elasticsearch
+      cluster-nodes: http://3.113.71.211:9200/
+      repositories:
+        enabled: true
+logic:
+  ##kafka配置
+  kafka:
+    broker:
+      host: 3.113.71.211
+      port: 9092
+    topic:
+      topic-torrent-meta-info: torrent-meta-info
+    consumer:
+      group-id: exchange-group
