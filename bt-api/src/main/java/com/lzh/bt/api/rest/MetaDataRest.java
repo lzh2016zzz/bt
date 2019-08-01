@@ -21,6 +21,7 @@ public class MetaDataRest implements MetaDataFacade {
     MetaDataService metaDataService;
 
     @GetMapping("/query/names/{name}/suffixes/{suffix}")
+    @Override
     public ResponseEntity<List<Metadata>> queryByNamePage(@PathVariable String name, @PathVariable String suffix, Pageable pageable) {
         return ResponseEntity.ok(metaDataService.query(name, suffix, pageable));
     }
