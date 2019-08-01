@@ -41,7 +41,7 @@ public class MetaDataService {
      * @return
      */
     public List<Metadata> query(String name, String suffix, Pageable pageable) {
-        return metadataRepository.findAllByNameContainingLikeAndSuffixesContainsOrderByHotDesc(name, suffix, pageable);
+        return metadataRepository.findAllByNameContainingAndSuffixesContainsOrderByHotDesc(name, suffix, pageable);
     }
 
 
