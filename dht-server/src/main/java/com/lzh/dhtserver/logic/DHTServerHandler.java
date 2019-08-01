@@ -199,13 +199,15 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
         DatagramPacket packet = createPacket(t, "r", r, sender);
         dhtServerContext.sendKRPC(packet);
         // 将 info_hash 放进消息队列
-        String hex = Hex.encodeHexString(Optional.ofNullable(info_hash).orElse(emptyBytes));
         if (token.length == 2 && info_hash[0] == token[0] && info_hash[1] == token[1]) {
-            if (dhtServerContext.getRedisTemplate().opsForSet().isMember(Constant.INFO_HASH_HEX, hex))
-                return;
-            dhtServerContext.getRedisTemplate().opsForSet().add(Constant.INFO_HASH_HEX, hex);
-            log.info("node{}[AP]:{}:{}", dhtServerContext.getUdpPort().getPort(), sender.getHostString(), port);
-            dhtServerContext.getKafkaTemplate().send(MessageBuilder.withPayload(JSON.toJSONString(new DownloadMsgInfo(sender.getHostString(), port, info_hash))).build());
+            //热度计数 + 1
+            dhtServerContext.getRedisTemplate().boundValueOps(Constant.INFO_HASH_HEX).increment();
+            String infoHashHEX = Hex.encodeHexString(Optional.ofNullable(info_hash).orElse(emptyBytes));
+            if (!dhtServerContext.getRedisTemplate().boundSetOps(Constant.SUCCESS_INFO_HASH_HEX).isMember(infoHashHEX)) {
+                //发送节点信息
+                log.info("node{}[AP]:{}:{}", dhtServerContext.getUdpPort().getPort(), sender.getHostString(), port);
+                dhtServerContext.getKafkaTemplate().send(MessageBuilder.withPayload(JSON.toJSONString(new DownloadMsgInfo(sender.getHostString(), port, info_hash))).build());
+            }
         }
     }
 

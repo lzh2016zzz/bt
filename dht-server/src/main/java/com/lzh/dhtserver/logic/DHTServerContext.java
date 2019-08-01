@@ -53,7 +53,7 @@ public class DHTServerContext {
             new InetSocketAddress("router.utorrent.com", 6881),
             new InetSocketAddress("dht.aelitis.com", 6881)));
 
-    public DHTServerContext(RedisTemplate redisTemplate, KafkaTemplate<String, String> kafkaTemplate, Bootstrap severBootstrap, InetSocketAddress udpPort, byte[] selfNodeId, DHTServerHandler dhtServerHandler) {
+    public DHTServerContext(RedisTemplate<String, String> redisTemplate, KafkaTemplate<String, String> kafkaTemplate, Bootstrap severBootstrap, InetSocketAddress udpPort, byte[] selfNodeId, DHTServerHandler dhtServerHandler) {
         this.redisTemplate = redisTemplate;
         this.kafkaTemplate = kafkaTemplate;
         this.severBootstrap = severBootstrap;
