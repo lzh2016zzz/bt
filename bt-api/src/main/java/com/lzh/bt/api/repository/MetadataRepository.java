@@ -10,5 +10,5 @@ import java.util.List;
 @Repository
 public interface MetadataRepository extends ElasticsearchRepository<Metadata, String> {
 
-    List<Metadata> findAllByNameLike(String name, Pageable pageable);
+    List<Metadata> findAllByNameContainingLikeAndSuffixesContainsOrderByHotDesc(String name, String suffixes,Pageable pageable);
 }
