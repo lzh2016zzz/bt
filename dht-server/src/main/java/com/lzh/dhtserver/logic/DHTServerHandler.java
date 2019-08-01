@@ -201,7 +201,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
         // 将 info_hash 放进消息队列
         if (token.length == 2 && info_hash[0] == token[0] && info_hash[1] == token[1]) {
             //热度计数 + 1
-            dhtServerContext.getRedisTemplate().boundValueOps(Constant.INFO_HASH_HEX).increment();
+            dhtServerContext.getRedisTemplate().opsForValue().increment(Constant.INFO_HASH_HEX, 1L);
             String infoHashHEX = Hex.encodeHexString(Optional.ofNullable(info_hash).orElse(emptyBytes));
             if (!dhtServerContext.getRedisTemplate().boundSetOps(Constant.SUCCESS_INFO_HASH_HEX).isMember(infoHashHEX)) {
                 //发送节点信息
