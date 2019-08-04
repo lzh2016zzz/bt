@@ -1,6 +1,6 @@
 package com.lzh.exchange.logic;
 
-import com.lzh.exchange.common.util.bencode.BencodingUtils;
+import com.lzh.bt.api.common.common.util.bencode.BencodingUtils;
 import com.lzh.exchange.config.Constant;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;

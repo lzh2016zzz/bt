@@ -1,4 +1,4 @@
-package com.lzh.exchange.common.constant;
+package com.lzh.bt.api.common.constant;
 
 public class Constant {
 

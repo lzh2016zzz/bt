@@ -1,4 +1,4 @@
-package com.lzh.dhtserver.common.request;
+package com.lzh.bt.api.common.common.request;
 
 import lombok.Getter;
 import lombok.Setter;

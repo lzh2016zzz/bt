@@ -1,4 +1,4 @@
-package com.lzh.dhtserver.common.entity;
+package com.lzh.bt.api.common.common.entity;
 
 import lombok.Data;
 

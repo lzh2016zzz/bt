@@ -1,4 +1,4 @@
-package com.lzh.dhtserver.common.util;
+package com.lzh.bt.api.common.util;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;

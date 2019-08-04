@@ -1,4 +1,4 @@
-package com.lzh.exchange.common.util.bencode;
+package com.lzh.bt.api.common.common.util.bencode;
 
 import java.io.*;
 import java.math.BigDecimal;

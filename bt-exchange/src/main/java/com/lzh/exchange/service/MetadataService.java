@@ -1,8 +1,8 @@
 package com.lzh.exchange.service;
 
 import com.alibaba.fastjson.JSON;
-import com.lzh.exchange.common.constant.Constant;
-import com.lzh.exchange.common.entity.Metadata;
+import com.lzh.bt.api.common.constant.Constant;
+import com.lzh.bt.api.common.entity.Metadata;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;

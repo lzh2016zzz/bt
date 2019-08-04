@@ -1,7 +1,7 @@
 package com.lzh.exchange.logic;
 
 
-import com.lzh.exchange.common.util.NodeIdUtil;
+import com.lzh.bt.api.common.common.util.NodeIdUtil;
 import io.netty.channel.ChannelFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

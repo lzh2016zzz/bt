@@ -1,4 +1,4 @@
-package com.lzh.dhtserver.common.util;
+package com.lzh.bt.api.common.common.util;
 
 import java.util.HashMap;
 import java.util.Map;

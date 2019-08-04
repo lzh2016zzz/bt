@@ -1,4 +1,4 @@
-package com.lzh.exchange.common.util;
+package com.lzh.bt.api.common.util;
 
 import io.netty.util.CharsetUtil;
 import lombok.AllArgsConstructor;

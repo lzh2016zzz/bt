@@ -1,6 +1,6 @@
-package com.lzh.dhtserver.common.entity;
+package com.lzh.bt.api.common.common.entity;
 
-import com.lzh.dhtserver.common.util.SystemClock;
+import com.lzh.bt.api.common.common.util.SystemClock;
 import lombok.Data;
 
 import java.io.Serializable;

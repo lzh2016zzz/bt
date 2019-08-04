@@ -1,4 +1,4 @@
-package com.lzh.exchange.common.entity;
+package com.lzh.bt.api.common.entity;
 
 import lombok.Builder;
 import lombok.Data;

@@ -61,6 +61,11 @@
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.laizh</groupId>
+            <artifactId>bt-common</artifactId>
+            <version>1.0</version>
+        </dependency>
     </dependencies>
 
     <build>

@@ -1,6 +1,6 @@
 package com.lzh.dhtserver.logic.config;
 
-import com.lzh.dhtserver.common.util.NodeIdUtil;
+import com.lzh.bt.api.common.common.util.NodeIdUtil;
 import com.lzh.dhtserver.logic.DHTChannelInitializer;
 import com.lzh.dhtserver.logic.DHTServerContext;
 import com.lzh.dhtserver.logic.DHTServerHandler;

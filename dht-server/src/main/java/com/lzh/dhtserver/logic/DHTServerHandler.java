@@ -1,10 +1,10 @@
 package com.lzh.dhtserver.logic;
 
 import com.alibaba.fastjson.JSON;
+import com.lzh.bt.api.common.common.entity.DownloadMsgInfo;
+import com.lzh.bt.api.common.common.util.NodeIdUtil;
+import com.lzh.bt.api.common.common.util.bencode.BencodingUtils;
 import com.lzh.bt.api.entity.Constant;
-import com.lzh.dhtserver.common.entity.DownloadMsgInfo;
-import com.lzh.dhtserver.common.util.NodeIdUtil;
-import com.lzh.dhtserver.common.util.bencode.BencodingUtils;
 import com.lzh.dhtserver.logic.entity.Node;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandler;

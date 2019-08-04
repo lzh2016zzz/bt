@@ -1,5 +1,5 @@
 import com.alibaba.fastjson.JSON;
-import com.lzh.exchange.common.util.Bencode;
+import com.lzh.bt.api.common.util.Bencode;
 import io.netty.util.CharsetUtil;
 import org.apache.commons.codec.binary.Hex;
 
