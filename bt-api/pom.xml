@@ -20,7 +20,7 @@
         </dependency>
         <dependency>
             <groupId>com.laizh</groupId>
-            <artifactId>bt-facade</artifactId>
+            <artifactId>bt-common</artifactId>
             <version>1.0</version>
         </dependency>
         <dependency>
