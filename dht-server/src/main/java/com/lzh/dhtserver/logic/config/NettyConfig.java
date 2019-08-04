@@ -6,6 +6,7 @@ import com.lzh.dhtserver.logic.DHTServerContext;
 import com.lzh.dhtserver.logic.DHTServerHandler;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.channel.AdaptiveRecvByteBufAllocator;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -25,7 +26,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.ApplicationContextEvent;
 import org.springframework.context.event.ContextClosedEvent;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 
@@ -82,6 +82,7 @@ public class NettyConfig implements ApplicationListener<ApplicationContextEvent>
                 bootstrap.option(option, tcpChannelOptions.get(option));
             }
         }
+        initServerContext();
         return dhtServerContexts;
     }
 
@@ -100,8 +101,12 @@ public class NettyConfig implements ApplicationListener<ApplicationContextEvent>
 
     @Bean(name = "udpChannelOptions")
     public Map<ChannelOption<?>, Object> udpChannelOptions() {
+        int minBufferSize = 1;
+        int initialBufferSize = 102400;
+        int maximumBufferSize = Integer.MAX_VALUE;
         Map<ChannelOption<?>, Object> options = new HashMap<>();
         options.put(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+        options.put(ChannelOption.RCVBUF_ALLOCATOR, new AdaptiveRecvByteBufAllocator(minBufferSize, initialBufferSize, maximumBufferSize));
         options.put(ChannelOption.SO_RCVBUF, rcvbuf);
         options.put(ChannelOption.SO_SNDBUF, sndbuf);
         return options;
@@ -111,9 +116,9 @@ public class NettyConfig implements ApplicationListener<ApplicationContextEvent>
     @Override
     public void onApplicationEvent(ApplicationContextEvent event) {
         if (event instanceof ContextClosedEvent && event.getApplicationContext().getParent() == null) {
-            group.stream().forEach(EventExecutorGroup::shutdownGracefully);
-        } else if (event instanceof ContextRefreshedEvent && event.getApplicationContext().getParent() == null) {
-            initServerContext();
+            group.stream()
+                    .filter(s -> !s.isShutdown())
+                    .forEach(EventExecutorGroup::shutdownGracefully);
         }
     }
 
