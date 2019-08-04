@@ -1,6 +1,7 @@
 package com.lzh.dhtserver.logic;
 
 
+import com.lzh.bt.api.AbstractHotCounter;
 import com.lzh.dhtserver.logic.entity.Node;
 import com.lzh.dhtserver.logic.entity.UniqueBlockingQueue;
 import io.netty.bootstrap.Bootstrap;
@@ -22,7 +23,7 @@ import java.util.List;
  * DHT Node Server Context
  **/
 @Slf4j
-public class DHTServerContext {
+public class DHTServerContext extends AbstractHotCounter {
 
 
     private RedisTemplate redisTemplate;
@@ -114,7 +115,7 @@ public class DHTServerContext {
         return dhtServerHandler;
     }
 
-    public RedisTemplate getRedisTemplate() {
+    public RedisTemplate<String, String> getRedisTemplate() {
         return redisTemplate;
     }
 
@@ -142,6 +143,11 @@ public class DHTServerContext {
         FindNodeTask task = new FindNodeTask(this);
         task.setName("find-node-task-" + this.udpPort.getPort());
         task.start();
+    }
+
+    @Override
+    public RedisTemplate<String, String> setRedisTemplate() {
+        return this.redisTemplate;
     }
 
     @AllArgsConstructor

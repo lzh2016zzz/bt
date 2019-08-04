@@ -5,6 +5,17 @@ spring:
       cluster-nodes: 3.113.71.211:9300
       repositories:
         enabled: true
+  redis:
+    host: 3.113.71.211
+    port: 6379
+    password: ce30
+    jedis:
+      pool:
+        max-idle: 8
+        min-idle: 0
+        max-active: 8
+        max-wait: -1ms
+    timeout: 200000
 ## kafka
 logic:
   kafka:
