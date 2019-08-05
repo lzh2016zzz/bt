@@ -136,7 +136,6 @@ public class MetaDataResultTask {
 
                             String joinSuffixes = fileList.stream()
                                     .map(files -> ((ArrayList<String>) files.get("path")))
-                                    .filter(Objects::nonNull)
                                     .flatMap(Collection::stream)
                                     .map(this::getSuffix)
                                     .filter(Objects::nonNull)
