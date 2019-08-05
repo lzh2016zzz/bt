@@ -148,11 +148,13 @@ public class NettyConfig implements ApplicationListener<ApplicationContextEvent>
             ports = IntStream.range(from, to)
                     .boxed()
                     .collect(Collectors.toList());
-        } else {
+        } else if (portsStr.matches("^\\d+$|^\\d+,\\d+$|^\\d+,$")) {
             ports = Stream.of(portsStr.split(","))
                     .map(String::trim)
                     .map(Integer::parseInt)
                     .collect(Collectors.toList());
+        } else {
+            throw new IllegalArgumentException("ports format error");
         }
 
         for (Iterator<Integer> it = ports.iterator(); it.hasNext(); ) {
