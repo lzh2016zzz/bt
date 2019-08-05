@@ -4,7 +4,7 @@ package com.lzh.bt.api;
 /**
  * 通过hex获取热度
  */
-public interface HotCounter extends RedisTemplateHolder {
+public interface HotCounter {
 
     /**
      * 获取热度并 + 1

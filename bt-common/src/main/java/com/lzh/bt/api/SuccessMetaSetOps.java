@@ -1,6 +1,6 @@
 package com.lzh.bt.api;
 
-public interface SuccessMetaSetOps extends RedisTemplateHolder {
+public interface SuccessMetaSetOps {
 
     boolean hexSaved(Object hex);
 
