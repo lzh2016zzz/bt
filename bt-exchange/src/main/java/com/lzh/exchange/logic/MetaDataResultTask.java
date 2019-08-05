@@ -1,8 +1,8 @@
 package com.lzh.exchange.logic;
 
 import com.alibaba.fastjson.JSON;
-import com.lzh.bt.api.common.entity.Metadata;
 import com.lzh.bt.api.common.util.Bencode;
+import com.lzh.bt.api.entity.Metadata;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import io.netty.util.CharsetUtil;
@@ -153,6 +153,7 @@ public class MetaDataResultTask {
                                     .length(totalLength)
                                     .single(false)
                                     .infoHash(Hex.encodeHexString(this.infoHash))
+                                    .create(System.currentTimeMillis())
                                     .build();
                         } else {
                             /**
@@ -166,6 +167,7 @@ public class MetaDataResultTask {
                                     .length(length)
                                     .single(true)
                                     .infoHash(Hex.encodeHexString(this.infoHash))
+                                    .create(System.currentTimeMillis())
                                     .build();
                         }
                     }
