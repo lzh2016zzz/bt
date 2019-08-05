@@ -33,7 +33,7 @@ public class MetadataService extends AbstractServerContext {
     }
 
     @Override
-    public RedisTemplate<String, String> setRedisTemplate() {
+    public RedisTemplate<String, String> redisTemplate() {
         return this.redisTemplate;
     }
 }

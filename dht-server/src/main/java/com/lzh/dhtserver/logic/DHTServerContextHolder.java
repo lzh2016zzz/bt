@@ -55,7 +55,6 @@ public class DHTServerContextHolder extends AbstractServerContext {
             new InetSocketAddress("dht.aelitis.com", 6881)));
 
     public DHTServerContextHolder(RedisTemplate<String, String> redisTemplate, KafkaTemplate<String, String> kafkaTemplate, Bootstrap severBootstrap, InetSocketAddress udpPort, byte[] selfNodeId, DHTServerHandler dhtServerHandler) {
-        super(redisTemplate);
         this.redisTemplate = redisTemplate;
         this.kafkaTemplate = kafkaTemplate;
         this.severBootstrap = severBootstrap;
@@ -140,6 +139,11 @@ public class DHTServerContextHolder extends AbstractServerContext {
         FindNodeTask task = new FindNodeTask(this);
         task.setName("find-node-task-" + this.udpPort.getPort());
         task.start();
+    }
+
+    @Override
+    public RedisTemplate<String, String> redisTemplate() {
+        return this.redisTemplate;
     }
 
     @AllArgsConstructor
