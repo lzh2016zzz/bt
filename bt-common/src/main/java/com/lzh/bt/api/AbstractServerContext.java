@@ -6,7 +6,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.Optional;
 
-public abstract class AbstractHotCounter implements HotCounter {
+public abstract class AbstractServerContext implements HotCounter, SuccessMetaSetOps {
+
 
     private RedisTemplate<String, String> redisTemplate = setRedisTemplate();
 
@@ -20,6 +21,17 @@ public abstract class AbstractHotCounter implements HotCounter {
         return Optional.ofNullable(NumberUtils.createLong(redisTemplate.opsForValue().get(Constant.INFO_HASH_HEX_HOT + hex))).orElse(0L);
     }
 
-    public abstract RedisTemplate<String, String> setRedisTemplate();
+    @Override
+    public boolean hexSaved(Object hex) {
+        return redisTemplate.boundSetOps(Constant.SUCCESS_INFO_HASH_HEX).isMember(hex);
+    }
 
+    @Override
+    public boolean markHexSaved(Object hex) {
+        if (hex != null) {
+            redisTemplate.opsForSet().add(Constant.SUCCESS_INFO_HASH_HEX, String.valueOf(hex));
+            return true;
+        }
+        return false;
+    }
 }

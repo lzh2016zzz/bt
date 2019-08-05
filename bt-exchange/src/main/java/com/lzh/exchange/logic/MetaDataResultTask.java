@@ -26,7 +26,7 @@ public class MetaDataResultTask {
      */
     private ByteBuf result;
     /**
-     * get metadata success callback
+     * get metadata markHexSaved callback
      */
     private Consumer<Metadata> successCallBack;
     /**

@@ -1,7 +1,7 @@
 package com.lzh.bt.api.service;
 
 import com.alibaba.fastjson.JSON;
-import com.lzh.bt.api.AbstractHotCounter;
+import com.lzh.bt.api.AbstractServerContext;
 import com.lzh.bt.api.entity.Metadata;
 import com.lzh.bt.api.repository.MetadataRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class MetaDataService extends AbstractHotCounter {
+public class MetaDataService extends AbstractServerContext {
 
     @Autowired
     MetadataRepository metadataRepository;

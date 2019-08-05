@@ -8,7 +8,7 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class DHTChannelInitializer extends ChannelInitializer<DatagramChannel> {
 
-    private DHTServerContext dhtServer;
+    private DHTServerContextHolder dhtServer;
 
     @Override
     protected void initChannel(DatagramChannel ch) throws Exception {

@@ -1,7 +1,7 @@
 package com.lzh.dhtserver.logic;
 
 
-import com.lzh.bt.api.AbstractHotCounter;
+import com.lzh.bt.api.AbstractServerContext;
 import com.lzh.dhtserver.logic.entity.Node;
 import com.lzh.dhtserver.logic.entity.UniqueBlockingQueue;
 import io.netty.bootstrap.Bootstrap;
@@ -23,7 +23,7 @@ import java.util.List;
  * DHT Node Server Context
  **/
 @Slf4j
-public class DHTServerContext extends AbstractHotCounter {
+public class DHTServerContextHolder extends AbstractServerContext {
 
 
     private RedisTemplate redisTemplate;
@@ -54,7 +54,7 @@ public class DHTServerContext extends AbstractHotCounter {
             new InetSocketAddress("router.utorrent.com", 6881),
             new InetSocketAddress("dht.aelitis.com", 6881)));
 
-    public DHTServerContext(RedisTemplate<String, String> redisTemplate, KafkaTemplate<String, String> kafkaTemplate, Bootstrap severBootstrap, InetSocketAddress udpPort, byte[] selfNodeId, DHTServerHandler dhtServerHandler) {
+    public DHTServerContextHolder(RedisTemplate<String, String> redisTemplate, KafkaTemplate<String, String> kafkaTemplate, Bootstrap severBootstrap, InetSocketAddress udpPort, byte[] selfNodeId, DHTServerHandler dhtServerHandler) {
         this.redisTemplate = redisTemplate;
         this.kafkaTemplate = kafkaTemplate;
         this.severBootstrap = severBootstrap;
@@ -153,7 +153,7 @@ public class DHTServerContext extends AbstractHotCounter {
     @AllArgsConstructor
     private class FindNodeTask extends Thread {
 
-        DHTServerContext context;
+        DHTServerContextHolder context;
 
         @Override
         public void run() {

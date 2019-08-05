@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.lzh.bt.api.common.common.entity.DownloadMsgInfo;
 import com.lzh.bt.api.common.common.util.NodeIdUtil;
 import com.lzh.bt.api.common.common.util.bencode.BencodingUtils;
-import com.lzh.bt.api.entity.Constant;
 import com.lzh.dhtserver.logic.entity.Node;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandler;
@@ -34,7 +33,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
 
     protected static final byte[] emptyBytes = new byte[]{};
 
-    protected DHTServerContext dhtServerContext;
+    protected DHTServerContextHolder dhtServerContext;
 
     private static final Charset defaultCharset = CharsetUtil.ISO_8859_1;
 
@@ -203,7 +202,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
             String infoHashHEX = Hex.encodeHexString(Optional.ofNullable(info_hash).orElse(emptyBytes));
             //热度计数 + 1
             dhtServerContext.getHotIncrement(infoHashHEX);
-            if (!dhtServerContext.getRedisTemplate().boundSetOps(Constant.SUCCESS_INFO_HASH_HEX).isMember(infoHashHEX)) {
+            if (!dhtServerContext.hexSaved(infoHashHEX)) {
                 //发送节点信息
                 log.info("node{}[AP]:{}:{}", dhtServerContext.getUdpPort().getPort(), sender.getHostString(), port);
                 dhtServerContext.getKafkaTemplate().send(MessageBuilder.withPayload(JSON.toJSONString(new DownloadMsgInfo(sender.getHostString(), port, info_hash))).build());
@@ -242,7 +241,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
      * 加入 DHT 网络
      */
     public void joinDHT() {
-        for (InetSocketAddress addr : DHTServerContext.BOOTSTRAP_NODES) {
+        for (InetSocketAddress addr : DHTServerContextHolder.BOOTSTRAP_NODES) {
             findNode(addr, null, dhtServerContext.getSelfNodeId());
         }
     }
@@ -298,7 +297,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DatagramPacket
     }
 
 
-    public void setDhtServerContext(DHTServerContext dhtServerContext) {
+    public void setDhtServerContext(DHTServerContextHolder dhtServerContext) {
         this.dhtServerContext = dhtServerContext;
     }
 }

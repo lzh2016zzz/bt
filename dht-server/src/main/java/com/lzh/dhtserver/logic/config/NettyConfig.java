@@ -2,7 +2,7 @@ package com.lzh.dhtserver.logic.config;
 
 import com.lzh.bt.api.common.common.util.NodeIdUtil;
 import com.lzh.dhtserver.logic.DHTChannelInitializer;
-import com.lzh.dhtserver.logic.DHTServerContext;
+import com.lzh.dhtserver.logic.DHTServerContextHolder;
 import com.lzh.dhtserver.logic.DHTServerHandler;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -63,16 +63,16 @@ public class NettyConfig implements ApplicationListener<ApplicationContextEvent>
     @Autowired
     private ApplicationArguments applicationArguments;
 
-    private List<DHTServerContext> dhtServerContexts = new CopyOnWriteArrayList<>();
+    private List<DHTServerContextHolder> dhtServerContexts = new CopyOnWriteArrayList<>();
 
 
     @Bean(name = "dhtServerContexts")
-    public List<DHTServerContext> dhtServerContexts(@Qualifier("selfNodeIdMap") Map<Integer, byte[]> selfNodeIdMap,
-                                                    RedisTemplate redisTemplate, KafkaTemplate<String, String> kafkaTemplate) {
+    public List<DHTServerContextHolder> dhtServerContexts(@Qualifier("selfNodeIdMap") Map<Integer, byte[]> selfNodeIdMap,
+                                                          RedisTemplate redisTemplate, KafkaTemplate<String, String> kafkaTemplate) {
         for (Map.Entry<Integer, byte[]> entry : selfNodeIdMap.entrySet()) {
             EventLoopGroup group = group();
             Bootstrap bootstrap = new Bootstrap();
-            DHTServerContext context = new DHTServerContext(redisTemplate, kafkaTemplate, bootstrap, new InetSocketAddress(entry.getKey()), entry.getValue(), new DHTServerHandler());
+            DHTServerContextHolder context = new DHTServerContextHolder(redisTemplate, kafkaTemplate, bootstrap, new InetSocketAddress(entry.getKey()), entry.getValue(), new DHTServerHandler());
             bootstrap.group(group).channel(NioDatagramChannel.class).handler(new DHTChannelInitializer(context));
             dhtServerContexts.add(context);
             Map<ChannelOption<?>, Object> tcpChannelOptions = udpChannelOptions();
@@ -87,7 +87,7 @@ public class NettyConfig implements ApplicationListener<ApplicationContextEvent>
     }
 
     private void initServerContext() {
-        dhtServerContexts.forEach(DHTServerContext::startServer);
+        dhtServerContexts.forEach(DHTServerContextHolder::startServer);
     }
 
 
