@@ -9,7 +9,11 @@ import java.util.Optional;
 public abstract class AbstractServerContext implements HotCounter, SuccessMetaSetOps {
 
 
-    private RedisTemplate<String, String> redisTemplate = setRedisTemplate();
+    private RedisTemplate<String, String> redisTemplate;
+
+    public AbstractServerContext(RedisTemplate<String, String> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
 
     @Override
     public Long getHotIncrement(Object hex) {
