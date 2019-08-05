@@ -30,10 +30,7 @@ public class MetaDataService extends AbstractServerContext {
     public void receiveMetaData(String msgData) {
         msgData = "[" + msgData + "]";
         List<Metadata> metadata = JSON.parseArray(msgData, Metadata.class);
-        metadataRepository.saveAll(metadata.stream().map(m -> {
-            m.setCreate(System.currentTimeMillis());
-            return m;
-        }).peek(k -> log.info("request to save metadata : " + k.toString())).collect(Collectors.toList()));
+        metadataRepository.saveAll(metadata.stream().peek(k -> log.info("request to save metadata : " + k.toString())).collect(Collectors.toList()));
     }
 
     /**
