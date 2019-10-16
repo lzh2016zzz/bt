@@ -7,6 +7,11 @@
 
 简单地说,就是拥有这个服务,就可以对全球正在下载哪些BT种子进行跟踪和索引 同时可以对收集到的数据进行检索
 
+
+#### 技术 
+
+Netty,Kafka,Spring web,Dht协议,UDP
+
 #### 项目结构
 
  - bt-api 查询API 用于查询收集到的BT-torrent 使用springweb开发
